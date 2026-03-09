@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>LLM Lecture</title>
+    <link rel="stylesheet" href="/static/css/styles.css" />
+  </head>
+  <body>
+    <main class="app-shell">
+      <section id="language-screen" class="language-screen">
+        <h1>Choose your language</h1>
+        <p>Select one option to start.</p>
+        <div class="language-grid">
+          <button class="language-card" data-language="en-us" type="button">
+            <img src="/static/images/flags/us-canada-diagonal.svg" alt="US and Canada flag" />
+            <span>English</span>
+          </button>
+          <button class="language-card" data-language="pt-br" type="button">
+            <img src="/static/images/flags/brazil.svg" alt="Brazil flag" />
+            <span>Portuguese</span>
+          </button>
+          <button class="language-card" data-language="es-mx" type="button">
+            <img src="/static/images/flags/mexico.svg" alt="Mexico flag" />
+            <span>Spanish</span>
+          </button>
+        </div>
+      </section>
+
+      <section id="content-screen" class="content-screen hidden">
+        <div id="idle-warning-banner" class="idle-warning-banner hidden" role="status" aria-live="polite">
+          <span id="idle-warning-text"></span>
+          <button id="idle-warning-cancel" class="nav-button" type="button">Cancelar</button>
+        </div>
+        <div class="content-topbar">
+          <div class="language-switcher">
+            <button id="language-menu-button" class="language-menu-button" type="button" aria-expanded="false">
+              <img id="current-language-flag" src="/static/images/flags/us-canada-diagonal.svg" alt="Selected language flag" />
+              <span class="menu-arrow">▾</span>
+            </button>
+            <div id="language-menu" class="language-menu hidden">
+              <button class="language-option" data-language="en-us" type="button">
+                <img src="/static/images/flags/us-canada-diagonal.svg" alt="US and Canada flag" />
+                <span>English</span>
+              </button>
+              <button class="language-option" data-language="pt-br" type="button">
+                <img src="/static/images/flags/brazil.svg" alt="Brazil flag" />
+                <span>Portuguese</span>
+              </button>
+              <button class="language-option" data-language="es-mx" type="button">
+                <img src="/static/images/flags/mexico.svg" alt="Mexico flag" />
+                <span>Spanish</span>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <header class="lesson-header">
+          <h1 id="app-title">LLM Lecture</h1>
+        </header>
+
+        <section class="progress-wrapper">
+          <div id="progress-bar" class="progress-bar"></div>
+        </section>
+
+        <section class="step-card">
+          <p id="step-counter" class="step-counter"></p>
+          <h2 id="step-title"></h2>
+          <h3 id="step-subtitle" class="step-subtitle"></h3>
+          <p id="step-body"></p>
+          <img id="step-image" class="step-image hidden" src="" alt="" />
+          <section id="tokenizer-panel" class="tokenizer-panel hidden">
+            <label for="tokenizer-input" class="tokenizer-label">Digite um texto para tokenizar</label>
+            <textarea
+              id="tokenizer-input"
+              class="tokenizer-input"
+              placeholder="Exemplo: LLMs são incríveis!"
+            ></textarea>
+            <div id="tokenizer-token-count" class="tokenizer-token-count"></div>
+            <div id="tokenizer-colored-output" class="tokenizer-colored-output"></div>
+            <div id="tokenizer-ids-output" class="tokenizer-ids-output"></div>
+          </section>
+          <section id="pretrain-panel" class="pretrain-panel hidden">
+            <label for="pretrain-input" class="tokenizer-label">Digite o início de um texto</label>
+            <textarea
+              id="pretrain-input"
+              class="tokenizer-input"
+              placeholder="Exemplo: A inteligência artificial"
+            ></textarea>
+            <button id="pretrain-submit-button" class="nav-button nav-next" type="button">
+              Gerar continuação
+            </button>
+          </section>
+          <section id="chat-panel" class="pretrain-panel hidden">
+            <div id="chat-thread" class="chat-thread"></div>
+            <div class="chat-composer">
+              <textarea
+                id="chat-input"
+                class="tokenizer-input chat-input"
+                placeholder="Exemplo: Explique o que é pós-treinamento."
+              ></textarea>
+              <button id="chat-submit-button" class="nav-button nav-next" type="button">
+                Enviar
+              </button>
+            </div>
+          </section>
+        </section>
+
+        <section class="step-actions">
+          <button id="back-button" class="nav-button" type="button">Voltar</button>
+          <button id="next-button" class="nav-button nav-next" type="button">Avancar</button>
+        </section>
+      </section>
+    </main>
+    <script src="/static/js/app.js"></script>
+  </body>
+</html>

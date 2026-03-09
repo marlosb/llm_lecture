@@ -1,0 +1,18 @@
+# Ignore hidden files and folders
+.*
+**/.*
+
+# Keep repository config and workflows
+!.gitignore
+!.github/
+!.github/**
+
+# Local secrets and local model artifacts
+secrets.txt
+backend/models/
+backend/models/openai-community-gpt2/
+
+# Python cache
+__pycache__/
+**/__pycache__/
+*.py[cod]
