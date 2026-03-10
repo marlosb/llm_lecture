@@ -55,6 +55,8 @@ secrets.txt                       # local secrets (gitignored)
 
 - Python 3.10+ (recommended)
 - [uv](https://docs.astral.sh/uv/) installed and available in PATH
+- Azure OpenAI **Chat Completion** model deployment (for `/api/chat-complete`)
+- Azure OpenAI **Reasoning** model deployment (for `/api/reasoning-chat-complete`, e.g. `o3-mini`)
 
 ## Quick Start
 
