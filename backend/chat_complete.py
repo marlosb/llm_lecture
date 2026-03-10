@@ -66,9 +66,11 @@ def _run_azure_chat_complete(
     endpoint: str,
     api_key: str,
     deployment: str,
+    model: str,
     api_version: str,
     missing_secret_error: str,
     missing_deployment_error: str,
+    missing_model_error: str,
     system_message: str,
 ) -> ChatCompleteResponse:
     if not endpoint or not api_key:
@@ -87,11 +89,17 @@ def _run_azure_chat_complete(
             {"role": "user", "content": payload.text},
         ]
     }
+    if "/models/chat/completions" in url:
+        if not model:
+            raise ValueError(missing_model_error)
+        body["model"] = model
     request_data: bytes = json.dumps(body).encode("utf-8")
     headers: dict[str, str] = {
         "Content-Type": "application/json",
         "api-key": api_key,
     }
+    if "/models/chat/completions" in url:
+        headers["Authorization"] = f"Bearer {api_key}"
     req = request.Request(url, data=request_data, headers=headers, method="POST")
 
     try:
@@ -99,6 +107,12 @@ def _run_azure_chat_complete(
             response_data = json.loads(resp.read().decode("utf-8"))
     except error.HTTPError as exc:
         detail = exc.read().decode("utf-8", errors="replace")
+        if "/models/chat/completions" in url and "DeploymentNotFound" in detail:
+            detail = (
+                f"{detail} Hint: for Azure AI /models/chat/completions endpoints, "
+                "set AZURE_OPENAI_REASONING_MODEL (or AZURE_OPENAI_CHAT_MODEL) to "
+                "the exact model/deployment name available in your Azure AI project."
+            )
         raise RuntimeError(f"Azure OpenAI request failed: {detail}") from exc
     except error.URLError as exc:
         raise RuntimeError(f"Azure OpenAI connection failed: {exc.reason}") from exc
@@ -120,6 +134,9 @@ def chat_complete(payload: ChatCompleteRequest) -> ChatCompleteResponse:
         "AZURE_OPENAI_API_KEY", ""
     )
     deployment: str = secrets.get("AZURE_OPENAI_CHAT_DEPLOYMENT", "")
+    model: str = secrets.get("AZURE_OPENAI_CHAT_MODEL", "") or secrets.get(
+        "AZURE_OPENAI_CHAT_DEPLOYMENT", ""
+    )
     api_version: str = secrets.get("AZURE_OPENAI_CHAT_API_VERSION", "") or secrets.get(
         "AZURE_OPENAI_API_VERSION", "2024-10-21"
     )
@@ -128,6 +145,7 @@ def chat_complete(payload: ChatCompleteRequest) -> ChatCompleteResponse:
         endpoint=endpoint,
         api_key=api_key,
         deployment=deployment,
+        model=model,
         api_version=api_version,
         missing_secret_error=(
             "Missing AZURE_OPENAI_CHAT_ENDPOINT and/or AZURE_OPENAI_CHAT_API_KEY "
@@ -135,6 +153,9 @@ def chat_complete(payload: ChatCompleteRequest) -> ChatCompleteResponse:
         ),
         missing_deployment_error=(
             "Missing AZURE_OPENAI_CHAT_DEPLOYMENT in secrets.txt for base endpoint mode."
+        ),
+        missing_model_error=(
+            "Missing AZURE_OPENAI_CHAT_MODEL in secrets.txt for /models/chat/completions mode."
         ),
         system_message="Você é um assistente útil e objetivo.",
     )
@@ -145,6 +166,11 @@ def reasoning_chat_complete(payload: ChatCompleteRequest) -> ChatCompleteRespons
     endpoint: str = secrets.get("AZURE_OPENAI_REASONING_ENDPOINT", "")
     api_key: str = secrets.get("AZURE_OPENAI_REASONING_API_KEY", "")
     deployment: str = secrets.get("AZURE_OPENAI_REASONING_DEPLOYMENT", "")
+    model: str = (
+        secrets.get("AZURE_OPENAI_REASONING_MODEL", "")
+        or secrets.get("AZURE_OPENAI_REASONING_DEPLOYMENT", "")
+        or "DeepSeek-R1-0528"
+    )
     api_version: str = secrets.get("AZURE_OPENAI_REASONING_API_VERSION", "") or secrets.get(
         "AZURE_OPENAI_API_VERSION", "2024-10-21"
     )
@@ -153,6 +179,7 @@ def reasoning_chat_complete(payload: ChatCompleteRequest) -> ChatCompleteRespons
         endpoint=endpoint,
         api_key=api_key,
         deployment=deployment,
+        model=model,
         api_version=api_version,
         missing_secret_error=(
             "Missing AZURE_OPENAI_REASONING_ENDPOINT and/or "
@@ -160,6 +187,10 @@ def reasoning_chat_complete(payload: ChatCompleteRequest) -> ChatCompleteRespons
         ),
         missing_deployment_error=(
             "Missing AZURE_OPENAI_REASONING_DEPLOYMENT in secrets.txt for base endpoint mode."
+        ),
+        missing_model_error=(
+            "Missing AZURE_OPENAI_REASONING_MODEL in secrets.txt for "
+            "/models/chat/completions mode."
         ),
         system_message=(
             "Você é um assistente de raciocínio. Explique sempre passo a passo "

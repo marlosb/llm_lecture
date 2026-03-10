@@ -26,15 +26,17 @@ cat <<'EOF'
 Installation completed.
 Before running the app, create/update secrets.txt in the project root with this schema:
 
-# Azure OpenAI configuration
+# Azure OpenAI chat model (GPT-5-nano)
 AZURE_OPENAI_CHAT_ENDPOINT=
 AZURE_OPENAI_CHAT_API_KEY=
 AZURE_OPENAI_CHAT_DEPLOYMENT=
+AZURE_OPENAI_CHAT_MODEL=
 AZURE_OPENAI_CHAT_API_VERSION=2025-01-01-preview
 
-# Azure OpenAI reasoning model (o3-mini)
+# Azure AI reasoning model (DeepSeek-R1-0528)
 AZURE_OPENAI_REASONING_ENDPOINT=
 AZURE_OPENAI_REASONING_API_KEY=
 AZURE_OPENAI_REASONING_DEPLOYMENT=
-AZURE_OPENAI_REASONING_API_VERSION=2025-01-01-preview
+AZURE_OPENAI_REASONING_MODEL=DeepSeek-R1-0528
+AZURE_OPENAI_REASONING_API_VERSION=2024-05-01-preview
 EOF

@@ -18,8 +18,8 @@ It is designed for large touch-screen displays in innovation hubs and supports m
 - Step-specific content (text, images, interactivity)
 - Tokenizer demo
 - Local text completion demo (GPT-2)
-- Chat completion demo (Azure OpenAI)
-- Reasoning chat completion demo (Azure OpenAI o3-mini)
+- Chat completion demo (Azure OpenAI GPT-5-nano)
+- Reasoning chat completion demo (Azure AI DeepSeek-R1-0528)
 - Idle detection (5 minutes) with auto-refresh warning and cancel option
 
 ## Project Structure
@@ -55,8 +55,8 @@ secrets.txt                       # local secrets (gitignored)
 
 - Python 3.10+ (recommended)
 - [uv](https://docs.astral.sh/uv/) installed and available in PATH
-- Azure OpenAI **Chat Completion** model deployment (for `/api/chat-complete`)
-- Azure OpenAI **Reasoning** model deployment (for `/api/reasoning-chat-complete`, e.g. `o3-mini`)
+- Azure OpenAI **Chat Completion** model deployment (for `/api/chat-complete`, currently `GPT-5-nano`)
+- Azure AI **Reasoning** model access (for `/api/reasoning-chat-complete`, currently `DeepSeek-R1-0528`)
 
 ## Quick Start
 
@@ -84,18 +84,22 @@ The app will run at:
 Create (or update) `secrets.txt` in the project root:
 
 ```text
-# Azure OpenAI configuration
+# Azure OpenAI chat model (GPT-5-nano)
 AZURE_OPENAI_CHAT_ENDPOINT=
 AZURE_OPENAI_CHAT_API_KEY=
 AZURE_OPENAI_CHAT_DEPLOYMENT=
+AZURE_OPENAI_CHAT_MODEL=
 AZURE_OPENAI_CHAT_API_VERSION=2025-01-01-preview
 
-# Azure OpenAI reasoning model (o3-mini)
+# Azure AI reasoning model (DeepSeek-R1-0528)
 AZURE_OPENAI_REASONING_ENDPOINT=
 AZURE_OPENAI_REASONING_API_KEY=
 AZURE_OPENAI_REASONING_DEPLOYMENT=
-AZURE_OPENAI_REASONING_API_VERSION=2025-01-01-preview
+AZURE_OPENAI_REASONING_MODEL=DeepSeek-R1-0528
+AZURE_OPENAI_REASONING_API_VERSION=2024-05-01-preview
 ```
+
+> For Azure AI `.../models/chat/completions` endpoints, set `AZURE_OPENAI_REASONING_MODEL` to the exact model/deployment name shown in your Azure AI project.
 
 > Note: `secrets.txt` is intentionally gitignored and meant for local testing only.
 
@@ -105,8 +109,8 @@ AZURE_OPENAI_REASONING_API_VERSION=2025-01-01-preview
 - `GET /api/content/{language_code}` - returns localized step content
 - `POST /api/tokenize` - tokenization demo
 - `POST /api/text-complete` - local GPT-2 text completion demo
-- `POST /api/chat-complete` - Azure chat completion
-- `POST /api/reasoning-chat-complete` - Azure reasoning chat completion (o3-mini)
+- `POST /api/chat-complete` - Azure chat completion (GPT-5-nano)
+- `POST /api/reasoning-chat-complete` - Azure reasoning chat completion (DeepSeek-R1-0528)
 
 ## Development Notes
 
