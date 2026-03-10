@@ -5,6 +5,24 @@
     "next": "Siguiente",
     "counterPrefix": "PARTE"
   },
+  "ui": {
+    "progressAriaLabel": "Ir a la parte {part}",
+    "idleWarningMessage": "Página inactiva. Actualización automática en {seconds}s.",
+    "idleWarningCancel": "Cancelar",
+    "tokenizerLabel": "Escribe un texto para tokenizar",
+    "tokenizerEmptyMessage": "Escribe un texto para ver los tokens.",
+    "tokenizerTotalTokens": "Total de tokens: {count}",
+    "tokenizerIdsLabel": "IDs",
+    "pretrainLabel": "Escribe el inicio de un texto",
+    "pretrainSubmit": "Generar continuación",
+    "textCompletionError": "No se pudo generar la continuación.",
+    "chatSubmit": "Enviar",
+    "chatWelcome": "¡Hola! Escribe tu mensaje para comenzar.",
+    "chatError": "No se pudo generar la respuesta del chat.",
+    "chatFallbackError": "Error en el chat.",
+    "tokenizerRequestError": "No se pudo tokenizar el texto.",
+    "tokenizerFallbackError": "Error al tokenizar."
+  },
   "steps": [
     {
       "title": "Bienvenidos a LLM Lecture",
@@ -16,7 +34,7 @@
     {
       "title": "Tokenizer",
       "subtitle": "El primer paso es la tokenización, ¿pero qué es un token?",
-      "body": "Las personas dividen palabras en sílabas. Los modelos dividen texto en tokens. Hay diferencias importantes: los modelos incluyen signos de puntuación y espacios dentro de los tokens. Así, puede existir un token para 'bien' y otro para 'bien.' (con punto), o un token para 'y' y otro para ' y ' (con espacios). También distinguen mayúsculas y minúsculas, así que \"Gato\" es distinto de \"gato\".\n\nDistintos modelos tienen distintos diccionarios de tokens. GPT-4 tiene alrededor de 100 mil tokens y modelos más recientes pueden tener alrededor de 200 mil. Para distinguir un token de otro usamos IDs numéricos. Por ejemplo, en un vocabulario de 50 mil tokens, los IDs podrían ir del 1 al 50,000.\n\nLa tokenización es justamente el componente que transforma texto en una lista de tokens.\n\nTambién existen tokens especiales que se agregan manualmente al diccionario. Estos tokens tienen funciones específicas, por ejemplo marcar el fin de un texto o de un documento."
+      "body": "Las personas dividen palabras en sílabas. <strong>Los modelos dividen texto en tokens.</strong> Hay diferencias importantes: los modelos incluyen signos de puntuación y espacios dentro de los tokens. Así, puede existir un token para 'bien' y otro para 'bien.' (con punto), o un token para 'y' y otro para ' y ' (con espacios). También distinguen mayúsculas y minúsculas, así que \"Gato\" es distinto de \"gato\".\n\n<strong>Distintos modelos tienen distintos diccionarios de tokens.</strong> GPT-4 tiene alrededor de 100 mil tokens y modelos más recientes pueden tener alrededor de 200 mil. Para distinguir un token de otro usamos IDs numéricos. Por ejemplo, en un vocabulario de 50 mil tokens, los IDs podrían ir del 1 al 50,000.\n\n<strong>La tokenización es el componente que transforma texto en una lista de tokens.</strong>\n\nTambién existen tokens especiales que se agregan manualmente al diccionario. Estos tokens tienen funciones específicas, por ejemplo marcar el fin de un texto o de un documento."
     },
     {
       "title": "Tokenizer",
@@ -37,18 +55,18 @@
     {
       "title": "Tokens",
       "subtitle": "¿Cómo se crean?",
-      "body": "Como otras partes de un modelo de IA, el vocabulario de tokens se aprende a partir de textos, pero antes de entrenar el modelo principal. A esta etapa la llamamos entrenamiento del tokenizador.\n\nPrimero, los desarrolladores definen el tamaño del vocabulario; por ejemplo, GPT-4 usó 100 mil tokens.\n\nDespués, separan una parte del corpus y un algoritmo recorre ese texto buscando las secuencias de caracteres más frecuentes.\n\nPor último, empezando por las secuencias más repetidas, se asignan IDs hasta llegar al último ID disponible (100,000 en el caso de GPT-4).\n\nDato curioso: en la técnica BPE usada para crear el tokenizador que probaste, si el ID de la palabra 'gato' (por ejemplo, 3400) es menor que el de 'perro' (por ejemplo, 4200), significa que 'gato' apareció más veces en los textos usados para entrenar el tokenizador. ¡Vuelve al paso anterior y compruébalo!",
+      "body": "Como otras partes de un modelo de IA, <strong>el vocabulario de tokens se aprende a partir de textos</strong>, pero antes de entrenar el modelo principal. A esta etapa la llamamos <strong>entrenamiento del tokenizador</strong>.\n\nPrimero, los desarrolladores definen el tamaño del vocabulario; por ejemplo, GPT-4 usó 100 mil tokens.\n\nDespués, separan una parte del corpus y <strong>un algoritmo recorre ese texto buscando las secuencias de caracteres más frecuentes</strong>.\n\nPor último, empezando por las secuencias más repetidas, <strong>se asignan IDs</strong> hasta llegar al último ID disponible (100,000 en el caso de GPT-4).\n\n<strong>Dato curioso:</strong> en la técnica BPE usada para crear el tokenizador que probaste, si el ID de la palabra 'gato' (por ejemplo, 3400) es menor que el de 'perro' (por ejemplo, 4200), significa que 'gato' apareció más veces en los textos usados para entrenar el tokenizador. ¡Vuelve al paso anterior y compruébalo!",
       "progressColor": "primary"
     },
     {
       "title": "Entrenamiento fundacional",
       "subtitle": "Cómo comienza la creación del modelo",
-      "body": "Esta es la etapa más pesada del proceso: requiere más texto, más capacidad computacional y más tiempo.\n\nEn esta etapa, el objetivo es entrenar el modelo con la mayor cantidad posible de texto confiable y de calidad. Libros, periódicos, revistas, sitios web, foros y también textos generados por IA, siempre que no sean contenidos inapropiados.\n\nDurante este entrenamiento, el modelo aprende fundamentos del lenguaje: gramática, estructura, sintaxis y semántica. También incorpora conocimiento general por la escala de los datos.\n\nPara modelos grandes, esta etapa puede tomar varias semanas y costar decenas de millones de dólares."
+      "body": "<strong>Esta es la etapa más pesada del proceso</strong>: requiere más texto, más capacidad computacional y más tiempo.\n\nEn esta etapa, el objetivo es <strong>entrenar el modelo con la mayor cantidad posible de texto confiable y de calidad</strong>. Libros, periódicos, revistas, sitios web, foros y también textos generados por IA, siempre que no sean contenidos inapropiados.\n\nDurante este entrenamiento, el modelo <strong>aprende fundamentos del lenguaje</strong>: gramática, estructura, sintaxis y semántica. También incorpora conocimiento general por la escala de los datos.\n\nPara modelos grandes, esta etapa puede tomar <strong>varias semanas</strong> y costar <strong>decenas de millones de dólares</strong>."
     },
     {
       "title": "Entrenamiento fundacional",
       "subtitle": "¿Cuál es el resultado?",
-      "body": "Al final del preentrenamiento, tenemos un modelo de completado de texto: empiezas a escribir y el modelo continúa.\n\nAsí funcionaban los modelos más antiguos, hasta GPT-3.\n\nMás en detalle, el modelo genera un token a la vez: el siguiente token de la secuencia. Para generar un texto completo, la API ejecuta un ciclo. El ciclo se detiene cuando aparece un token especial de fin de texto."
+      "body": "Al final del preentrenamiento, tenemos un <strong>modelo para completar texto</strong>: empiezas a escribir y el modelo continúa.\n\n<strong>Así funcionaban los modelos más antiguos, hasta GPT-3.</strong>\n\nMás en detalle, el modelo <strong>genera un token a la vez</strong>: el siguiente token de la secuencia. Para generar un texto completo, la API ejecuta un ciclo. El ciclo se detiene cuando aparece un <strong>token especial de fin de texto</strong>."
     },
     {
       "title": "Entrenamiento fundacional",
@@ -63,19 +81,19 @@
     {
       "title": "Postentrenamiento, parte 1",
       "subtitle": "De texto a chat",
-      "body": "A finales de 2022, OpenAI notó que completar texto no era la forma más natural para interactuar. Entonces cambiaron al formato de chat entre humano y modelo. Así nacieron ChatGPT y el modelo fundacional GPT-3.5.\n\nPara cambiar el comportamiento del modelo se necesita una nueva etapa de entrenamiento. En esta fase, el modelo se entrena con datos en el formato deseado: conversaciones entre dos participantes, con tokens especiales al inicio y fin de cada mensaje.\n\nEsta etapa es menor que la fundacional porque las bases del lenguaje ya están aprendidas.",
+      "body": "A finales de 2022, OpenAI notó que completar texto no era la forma más natural para interactuar. Entonces cambiaron a <strong>un formato de chat entre humano y modelo</strong>. Así nacieron <strong>ChatGPT</strong> y el modelo fundacional <strong>GPT-3.5</strong>.\n\nPara cambiar el comportamiento del modelo se necesita <strong>una nueva etapa de entrenamiento</strong>. En esta fase, el modelo se entrena con datos en el formato deseado: conversaciones entre dos participantes, con tokens especiales al inicio y fin de cada mensaje.\n\nEsta etapa es <strong>menor que la fundacional</strong> porque las bases del lenguaje ya están aprendidas.",
       "progressColor": "primary"
     },
     {
       "title": "Postentrenamiento, parte 2",
       "subtitle": "Ajuste fino supervisado",
-      "body": "Después de cambiar al formato chat, queremos mejorar la calidad de respuesta. Para eso usamos Supervised Fine-Tuning (SFT).\n\nSupervisado significa que todos los textos de esta etapa fueron anotados o creados por personas. Esto ayuda a garantizar calidad y confiabilidad. En esta fase se usan mucho bancos de preguntas y respuestas educativas, como reactivos tipo examen, tanto de opción múltiple como de desarrollo.\n\nEsta etapa también es mucho más pequeña y rápida que el entrenamiento fundacional.",
+      "body": "Después de cambiar al formato chat, queremos <strong>mejorar la calidad de respuesta</strong>. Para eso usamos <strong>Supervised Fine-Tuning (SFT)</strong>.\n\nSupervisado significa que <strong>todos los textos de esta etapa fueron anotados o creados por personas</strong>. Esto ayuda a garantizar calidad y confiabilidad. En esta fase se usan mucho bancos de preguntas y respuestas educativas, como reactivos tipo examen, tanto de opción múltiple como de desarrollo.\n\nEsta etapa también es <strong>mucho más pequeña y rápida</strong> que el entrenamiento fundacional.",
       "progressColor": "primary"
     },
     {
       "title": "Postentrenamiento, parte 3",
       "subtitle": "Aprendizaje por Refuerzo con Retroalimentación Humana (RLHF)",
-      "body": "Incluso después del SFT, el modelo puede seguir generando respuestas poco útiles o desalineadas en situaciones ambiguas. Para refinar su comportamiento se usa RLHF (Reinforcement Learning from Human Feedback).\n\nEn esta etapa, personas comparan varias respuestas del modelo para una misma pregunta y señalan cuáles son mejores o peores. La evaluación considera no solo corrección, sino también claridad, utilidad, tono y alineación con el comportamiento esperado.\n\nCon esas comparaciones se entrena un modelo de recompensa que aprende a puntuar respuestas. Luego, el modelo principal se ajusta con aprendizaje por refuerzo para maximizar esa puntuación.\n\nEl resultado es un modelo más alineado con expectativas humanas, con respuestas más útiles, seguras y consistentes. Igual que SFT, esta etapa es más corta que el entrenamiento fundacional, pero tiene un gran impacto en la calidad final.",
+      "body": "Incluso después del <strong>SFT</strong>, el modelo puede seguir generando respuestas poco útiles o desalineadas en situaciones ambiguas. Para refinar su comportamiento se usa <strong>RLHF (Reinforcement Learning from Human Feedback)</strong>.\n\nEn esta etapa, personas comparan varias respuestas del modelo para una misma pregunta y señalan cuáles son mejores o peores. La evaluación considera no solo corrección, sino también <strong>claridad, utilidad, tono y alineación con el comportamiento esperado</strong>.\n\nCon esas comparaciones se entrena un <strong>modelo de recompensa</strong> que aprende a puntuar respuestas. Luego, el modelo principal se ajusta con aprendizaje por refuerzo para <strong>maximizar esa puntuación</strong>.\n\nEl resultado es un <strong>modelo más alineado con expectativas humanas</strong>, con respuestas más útiles, seguras y consistentes. Igual que SFT, esta etapa es <strong>más corta</strong> que el entrenamiento fundacional, pero tiene un gran impacto en la calidad final.",
       "progressColor": "primary"
     },
     {
@@ -92,7 +110,7 @@
     {
       "title": "Postentrenamiento, parte 4",
       "subtitle": "Creación de un modelo de razonamiento",
-      "body": "Incluso después de RLHF, muchos modelos responden de forma directa sin un razonamiento estructurado. Para crear un modelo de razonamiento, el foco pasa a enseñar cómo resolver problemas paso a paso, y no solo cuál es la respuesta final.\n\nEn esta etapa, el modelo se entrena con ejemplos que incluyen razonamiento explícito, mostrando pasos intermedios para llegar a la solución. A este tipo de dato se le conoce como chain-of-thought.\n\nDurante el ajuste fino, el modelo aprende a descomponer problemas, mantener coherencia entre pasos y sostener un razonamiento lógico hasta la conclusión. En algunos casos, también se usan técnicas de refuerzo para premiar razonamientos claros y correctos.\n\nEl resultado es un modelo más confiable para tareas de lógica, matemáticas y análisis, capaz no solo de responder, sino de razonar de forma estructurada.",
+      "body": "Incluso después de <strong>RLHF</strong>, muchos modelos responden de forma directa sin un razonamiento estructurado. Para crear un <strong>modelo de razonamiento</strong>, el foco pasa a enseñar <strong>cómo resolver problemas paso a paso</strong>, y no solo cuál es la respuesta final.\n\nEn esta etapa, el modelo se entrena con ejemplos que incluyen <strong>razonamiento explícito</strong>, mostrando pasos intermedios para llegar a la solución. A este tipo de dato se le conoce como <strong>chain-of-thought</strong>.\n\nDurante el ajuste fino, el modelo aprende a <strong>descomponer problemas</strong>, mantener coherencia entre pasos y sostener un razonamiento lógico hasta la conclusión. En algunos casos, también se usan técnicas de refuerzo para premiar razonamientos claros y correctos.\n\nEl resultado es un <strong>modelo más confiable</strong> para tareas de lógica, matemáticas y análisis, capaz no solo de responder, sino de <strong>razonar de forma estructurada</strong>.",
       "progressColor": "blue"
     },
     {
@@ -107,7 +125,7 @@
     {
       "title": "Cierre",
       "subtitle": "¿Listo para crear el tuyo?",
-      "body": "A lo largo de este material recorrimos las etapas principales para crear un modelo de lenguaje de gran escala (LLM): desde la tokenización, pasando por el entrenamiento fundacional, ajuste fino supervisado, alineación con retroalimentación humana (RLHF) y, finalmente, técnicas para inducir razonamiento. Cada etapa ayuda a transformar un modelo que solo predice texto en un sistema capaz de responder de forma útil, coherente y alineada con las expectativas humanas.",
+      "body": "A lo largo de este material recorrimos las <strong>etapas principales para crear un modelo de lenguaje de gran escala (LLM)</strong>: desde la tokenización, pasando por el <strong>entrenamiento fundacional</strong>, <strong>ajuste fino supervisado</strong>, <strong>alineación con retroalimentación humana (RLHF)</strong> y, finalmente, <strong>técnicas para inducir razonamiento</strong>.\n\nCada etapa ayuda a transformar un modelo que solo predice texto en un sistema capaz de <strong>responder de forma útil, coherente y alineada con las expectativas humanas</strong>.",
       "progressColor": "orange"
     }
   ]

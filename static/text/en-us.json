@@ -5,6 +5,24 @@
     "next": "Next",
     "counterPrefix": "PART"
   },
+  "ui": {
+    "progressAriaLabel": "Go to part {part}",
+    "idleWarningMessage": "Page inactive. Auto refresh in {seconds}s.",
+    "idleWarningCancel": "Cancel",
+    "tokenizerLabel": "Type text to tokenize",
+    "tokenizerEmptyMessage": "Type text to see tokens.",
+    "tokenizerTotalTokens": "Total tokens: {count}",
+    "tokenizerIdsLabel": "IDs",
+    "pretrainLabel": "Type the start of a text",
+    "pretrainSubmit": "Generate continuation",
+    "textCompletionError": "Failed to generate continuation.",
+    "chatSubmit": "Send",
+    "chatWelcome": "Hi! Type your message to get started.",
+    "chatError": "Failed to generate chat response.",
+    "chatFallbackError": "Chat error.",
+    "tokenizerRequestError": "Failed to tokenize text.",
+    "tokenizerFallbackError": "Tokenization error."
+  },
   "steps": [
     {
       "title": "Welcome to LLM Lecture",
@@ -16,7 +34,7 @@
     {
       "title": "Tokenizer",
       "subtitle": "The first step is tokenization, but what is a token?",
-      "body": "People split words into syllables. Models split text into tokens. There are important differences: models include punctuation and spaces as part of tokens. So there may be one token for 'right' and another for 'right.' (notice the period); or one token for 'and' and another for ' and ' (notice the spaces). They also distinguish uppercase and lowercase, so \"Cat\" is a different token from \"cat\".\n\nDifferent models have different token dictionaries. GPT-4 has around 100 thousand tokens, and newer models can have around 200 thousand. To distinguish one token from another, we use numeric IDs. For a vocabulary of 50 thousand tokens, IDs might range from 1 to 50,000.\n\nTokenization is exactly the component that converts text into a list of tokens.\n\nThere are also special tokens manually added to the dictionary. These tokens have specific functions, such as marking the end of a text or the end of a document."
+      "body": "People split words into syllables. <strong>Models split text into tokens.</strong> There are important differences: models include punctuation and spaces as part of tokens. So there may be one token for 'right' and another for 'right.' (notice the period); or one token for 'and' and another for ' and ' (notice the spaces). They also distinguish uppercase and lowercase, so \"Cat\" is a different token from \"cat\".\n\n<strong>Different models have different token dictionaries.</strong> GPT-4 has around 100 thousand tokens, and newer models can have around 200 thousand. To distinguish one token from another, we use numeric IDs. For a vocabulary of 50 thousand tokens, IDs might range from 1 to 50,000.\n\n<strong>Tokenization is the component that converts text into a list of tokens.</strong>\n\nThere are also special tokens manually added to the dictionary. These tokens have specific functions, such as marking the end of a text or the end of a document."
     },
     {
       "title": "Tokenizer",
@@ -37,18 +55,18 @@
     {
       "title": "Tokens",
       "subtitle": "How are they created?",
-      "body": "Like other parts of an AI model, the token vocabulary is learned from text, but before the model itself is trained. We call this tokenizer training.\n\nFirst, model developers define the vocabulary size; for example, GPT-4 used 100 thousand tokens.\n\nNext, they select a subset of the training corpus, and an algorithm scans it to find the most frequent character sequences.\n\nFinally, starting with the most frequent sequences, IDs are assigned until the highest available ID is used (100,000 in GPT-4's case).\n\nFun fact: in the BPE technique used to build the tokenizer you tested, if the ID for the word 'cat' (for example, 3400) is smaller than the ID for 'dog' (for example, 4200), it means 'cat' appeared more often in the texts used to build the tokenizer. Go back to the previous step and check if that happens!",
+      "body": "Like other parts of an AI model, <strong>the token vocabulary is learned from text</strong>, but before the model itself is trained. We call this <strong>tokenizer training</strong>.\n\nFirst, model developers define the vocabulary size; for example, GPT-4 used 100 thousand tokens.\n\nNext, they select a subset of the training corpus, and <strong>an algorithm scans it to find the most frequent character sequences</strong>.\n\nFinally, starting with the most frequent sequences, <strong>IDs are assigned</strong> until the highest available ID is used (100,000 in GPT-4's case).\n\n<strong>Fun fact:</strong> in the BPE technique used to build the tokenizer you tested, if the ID for the word 'cat' (for example, 3400) is smaller than the ID for 'dog' (for example, 4200), it means 'cat' appeared more often in the texts used to build the tokenizer. Go back to the previous step and check if that happens!",
       "progressColor": "primary"
     },
     {
       "title": "Foundational Training",
       "subtitle": "How model creation begins",
-      "body": "This is the heaviest stage of the process, requiring the largest amount of text, the most compute, and the most time.\n\nAt this stage, the goal is to train the model on as much high-quality, reliable text as possible. Books, newspapers, magazines, websites, forums, and additional AI-generated text are used, as long as the content is appropriate.\n\nDuring this training, the model learns language fundamentals: grammar, structure, syntax, and semantics. It also absorbs broad world knowledge because of the scale of data.\n\nFor large models, this stage can take weeks and cost tens of millions of dollars."
+      "body": "<strong>This is the heaviest stage of the process</strong>, requiring the largest amount of text, the most compute, and the most time.\n\nAt this stage, the goal is to <strong>train the model on as much high-quality, reliable text as possible</strong>. Books, newspapers, magazines, websites, forums, and additional AI-generated text are used, as long as the content is appropriate.\n\nDuring this training, the model <strong>learns language fundamentals</strong>: grammar, structure, syntax, and semantics. It also absorbs broad world knowledge because of the scale of data.\n\nFor large models, this stage can take <strong>weeks</strong> and cost <strong>tens of millions of dollars</strong>."
     },
     {
       "title": "Foundational Training",
       "subtitle": "What is the result?",
-      "body": "At the end of pre-training, we have a text-completion model. You start writing, and the model continues from where you stopped.\n\nAll early generations of models worked like this, up to GPT-3.\n\nAt an even lower level, the model generates one token at a time: the next token in the sequence. To produce full text, the API runs a loop. The loop stops when a special end-of-text token is generated."
+      "body": "At the end of pre-training, we have a <strong>text-completion model</strong>. You start writing, and the model continues from where you stopped.\n\n<strong>All early generations of models worked like this, up to GPT-3.</strong>\n\nAt an even lower level, the model <strong>generates one token at a time</strong>: the next token in the sequence. To produce full text, the API runs a loop. The loop stops when a <strong>special end-of-text token</strong> is generated."
     },
     {
       "title": "Foundational Training",
@@ -63,19 +81,19 @@
     {
       "title": "Post-training, part 1",
       "subtitle": "From text to chat",
-      "body": "At the end of 2022, OpenAI realized that text completion was not the most natural way for people to interact. They shifted to a chat format between human and model. That is how ChatGPT and the GPT-3.5 foundation model emerged.\n\nTo change model behavior, a new training stage is required. In this stage, the model is trained on data in the format we want it to follow: conversations between two participants, with special tokens indicating the start and end of each message.\n\nThis new stage is smaller than foundational training because core language capability is already learned.",
+      "body": "At the end of 2022, OpenAI realized that text completion was not the most natural way for people to interact. They shifted to <strong>a chat format between human and model</strong>. That is how <strong>ChatGPT</strong> and the <strong>GPT-3.5</strong> foundation model emerged.\n\nTo change model behavior, <strong>a new training stage is required</strong>. In this stage, the model is trained on data in the format we want it to follow: conversations between two participants, with special tokens indicating the start and end of each message.\n\nThis new stage is <strong>smaller than foundational training</strong> because core language capability is already learned.",
       "progressColor": "primary"
     },
     {
       "title": "Post-training, part 2",
       "subtitle": "Supervised Fine-Tuning",
-      "body": "After shifting to chat behavior, we still want to improve response quality. For that, we apply Supervised Fine-Tuning (SFT).\n\nSupervised means all texts used in this stage are annotated or created by people. This helps ensure quality and reliability. Educational question-and-answer datasets are common here, such as exam-style questions, including both multiple choice and open-ended items.\n\nThis stage is also much smaller and faster than foundational training.",
+      "body": "After shifting to chat behavior, we still want to <strong>improve response quality</strong>. For that, we apply <strong>Supervised Fine-Tuning (SFT)</strong>.\n\nSupervised means <strong>all texts used in this stage are annotated or created by people</strong>. This helps ensure quality and reliability. Educational question-and-answer datasets are common here, such as exam-style questions, including both multiple choice and open-ended items.\n\nThis stage is also <strong>much smaller and faster</strong> than foundational training.",
       "progressColor": "primary"
     },
     {
       "title": "Post-training, part 3",
       "subtitle": "Reinforcement Learning from Human Feedback (RLHF)",
-      "body": "Even after SFT, the model may still produce unhelpful or misaligned responses in ambiguous scenarios. To further refine behavior, teams use Reinforcement Learning from Human Feedback (RLHF).\n\nIn this stage, people compare multiple model responses to the same prompt and rank which ones are better or worse. Judgments consider not only correctness, but also clarity, usefulness, tone, and alignment with expected behavior.\n\nFrom these rankings, a reward model is trained to score responses. Then the main model is optimized with reinforcement learning to maximize that score, producing responses that are increasingly preferred by humans.\n\nThe result is a model better aligned with human expectations, with safer, more useful, and more consistent answers. Like SFT, this stage is smaller and faster than foundational training, but it has major impact on final quality.",
+      "body": "Even after <strong>SFT</strong>, the model may still produce unhelpful or misaligned responses in ambiguous scenarios. To further refine behavior, teams use <strong>Reinforcement Learning from Human Feedback (RLHF)</strong>.\n\nIn this stage, people compare multiple model responses to the same prompt and rank which ones are better or worse. Judgments consider not only correctness, but also <strong>clarity, usefulness, tone, and alignment with expected behavior</strong>.\n\nFrom these rankings, a <strong>reward model</strong> is trained to score responses. Then the main model is optimized with reinforcement learning to <strong>maximize that score</strong>, producing responses that are increasingly preferred by humans.\n\nThe result is a <strong>model better aligned with human expectations</strong>, with safer, more useful, and more consistent answers. Like SFT, this stage is <strong>smaller and faster</strong> than foundational training, but it has major impact on final quality.",
       "progressColor": "primary"
     },
     {
@@ -92,7 +110,7 @@
     {
       "title": "Post-training, part 4",
       "subtitle": "Building a reasoning model",
-      "body": "Even after RLHF, many models still answer directly without structured reasoning. To build a reasoning model, the focus shifts to teaching how to solve problems step by step, not only what the final answer is.\n\nIn this stage, the model is trained with examples that include explicit reasoning processes, showing intermediate steps required to reach the solution. This type of data is often called chain-of-thought.\n\nDuring fine-tuning, the model learns to decompose problems, maintain consistency across steps, and sustain logical reasoning through conclusion. In some cases, reinforcement techniques are also used to reward clear and correct reasoning.\n\nThe result is a model that is more reliable for logic, math, and analysis tasks, able not only to answer, but to reason in a structured way.",
+      "body": "Even after <strong>RLHF</strong>, many models still answer directly without structured reasoning. To build a <strong>reasoning model</strong>, the focus shifts to teaching <strong>how to solve problems step by step</strong>, not only what the final answer is.\n\nIn this stage, the model is trained with examples that include <strong>explicit reasoning processes</strong>, showing intermediate steps required to reach the solution. This type of data is often called <strong>chain-of-thought</strong>.\n\nDuring fine-tuning, the model learns to <strong>decompose problems</strong>, maintain consistency across steps, and sustain logical reasoning through conclusion. In some cases, reinforcement techniques are also used to reward clear and correct reasoning.\n\nThe result is a <strong>model that is more reliable</strong> for logic, math, and analysis tasks, able not only to answer, but to <strong>reason in a structured way</strong>.",
       "progressColor": "blue"
     },
     {
@@ -107,7 +125,7 @@
     {
       "title": "Closing",
       "subtitle": "Ready to build yours?",
-      "body": "Throughout this material, we covered the key stages of creating a large language model (LLM): from tokenization, through foundational training, supervised fine-tuning, alignment with human feedback (RLHF), and finally techniques to induce reasoning. Each stage helps transform a model that only predicts text into a system that can respond in useful, coherent, and human-aligned ways.",
+      "body": "Throughout this material, we covered the <strong>key stages of creating a large language model (LLM)</strong>: from tokenization, through <strong>foundational training</strong>, <strong>supervised fine-tuning</strong>, <strong>alignment with human feedback (RLHF)</strong>, and finally <strong>techniques to induce reasoning</strong>.\n\nEach stage helps transform a model that only predicts text into a system that can <strong>respond in useful, coherent, and human-aligned ways</strong>.",
       "progressColor": "orange"
     }
   ]

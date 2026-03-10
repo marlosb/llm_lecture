@@ -50,8 +50,27 @@ const appState = {
     next: "Avancar",
     counterPrefix: "PARTE",
   },
+  ui: {
+    progressAriaLabel: "Ir para parte {part}",
+    idleWarningMessage: "Página inativa. Atualização automática em {seconds}s.",
+    idleWarningCancel: "Cancelar",
+    tokenizerLabel: "Digite um texto para tokenizar",
+    tokenizerEmptyMessage: "Digite um texto para ver os tokens.",
+    tokenizerTotalTokens: "Total de tokens: {count}",
+    tokenizerIdsLabel: "IDs",
+    pretrainLabel: "Digite o início de um texto",
+    pretrainSubmit: "Gerar continuação",
+    textCompletionError: "Falha ao gerar continuação.",
+    chatSubmit: "Enviar",
+    chatWelcome: "Olá! Escreva sua mensagem para começarmos.",
+    chatError: "Falha ao gerar resposta do chat.",
+    chatFallbackError: "Erro no chat.",
+    tokenizerRequestError: "Falha ao tokenizar o texto.",
+    tokenizerFallbackError: "Erro ao tokenizar.",
+  },
 };
 const defaultLabels = { ...appState.labels };
+const defaultUiLabels = { ...appState.ui };
 const TOKEN_COLORS = [
   "#ffd7d7",
   "#ffe9c5",
@@ -85,6 +104,26 @@ const getSegmentClass = (segmentIndex) => {
   return groupIndex < 3 ? "segment-blue" : "segment-orange";
 };
 
+const formatLabel = (template, values = {}) => {
+  return Object.entries(values).reduce((accumulator, [key, value]) => {
+    return accumulator.replaceAll(`{${key}}`, String(value));
+  }, template);
+};
+
+const renderStaticUiText = () => {
+  idleWarningCancel.textContent = appState.ui.idleWarningCancel;
+  const tokenizerLabel = document.querySelector("label[for='tokenizer-input']");
+  const pretrainLabel = document.querySelector("label[for='pretrain-input']");
+  if (tokenizerLabel) {
+    tokenizerLabel.textContent = appState.ui.tokenizerLabel;
+  }
+  if (pretrainLabel) {
+    pretrainLabel.textContent = appState.ui.pretrainLabel;
+  }
+  pretrainSubmitButton.textContent = appState.ui.pretrainSubmit;
+  chatSubmitButton.textContent = appState.ui.chatSubmit;
+};
+
 const renderProgress = () => {
   progressBar.innerHTML = "";
   const availableSteps = appState.steps.length;
@@ -93,7 +132,10 @@ const renderProgress = () => {
     segment.type = "button";
     segment.className = "progress-segment";
     segment.dataset.stepIndex = String(index);
-    segment.setAttribute("aria-label", `Ir para parte ${index + 1}`);
+    segment.setAttribute(
+      "aria-label",
+      formatLabel(appState.ui.progressAriaLabel, { part: index + 1 }),
+    );
     segment.disabled = index >= availableSteps;
     if (index <= appState.currentStep) {
       segment.classList.add("active", getSegmentClass(index));
@@ -125,7 +167,9 @@ const startIdleTimer = () => {
     }
 
     let remainingSeconds = AUTO_REFRESH_SECONDS;
-    idleWarningText.textContent = `Página inativa. Atualização automática em ${remainingSeconds}s.`;
+    idleWarningText.textContent = formatLabel(appState.ui.idleWarningMessage, {
+      seconds: remainingSeconds,
+    });
     idleWarningBanner.classList.remove("hidden");
 
     autoRefreshIntervalHandle = setInterval(() => {
@@ -135,7 +179,9 @@ const startIdleTimer = () => {
         autoRefreshIntervalHandle = null;
         return;
       }
-      idleWarningText.textContent = `Página inativa. Atualização automática em ${remainingSeconds}s.`;
+      idleWarningText.textContent = formatLabel(appState.ui.idleWarningMessage, {
+        seconds: remainingSeconds,
+      });
     }, 1000);
 
     autoRefreshTimeoutHandle = setTimeout(() => {
@@ -158,7 +204,9 @@ const clearTokenizerOutputs = (message = "") => {
 };
 
 const renderTokenizerResult = (result) => {
-  tokenizerTokenCount.textContent = `Total de tokens: ${result.token_ids.length}`;
+  tokenizerTokenCount.textContent = formatLabel(appState.ui.tokenizerTotalTokens, {
+    count: result.token_ids.length,
+  });
   tokenizerColoredOutput.innerHTML = "";
   result.tokens.forEach((token, index) => {
     const tokenSpan = document.createElement("span");
@@ -167,7 +215,7 @@ const renderTokenizerResult = (result) => {
     tokenSpan.textContent = token.text;
     tokenizerColoredOutput.appendChild(tokenSpan);
   });
-  tokenizerIdsOutput.textContent = `IDs: ${result.token_ids.join(", ")}`;
+  tokenizerIdsOutput.textContent = `${appState.ui.tokenizerIdsLabel}: ${result.token_ids.join(", ")}`;
 };
 
 const runTextCompletion = async () => {
@@ -192,7 +240,7 @@ const runTextCompletion = async () => {
       }),
     });
     if (!response.ok) {
-      let message = "Falha ao gerar continuação.";
+      let message = appState.ui.textCompletionError;
       try {
         const errorPayload = await response.json();
         if (errorPayload?.detail) {
@@ -252,7 +300,7 @@ const runChatCompletion = async () => {
       }),
     });
     if (!response.ok) {
-      let message = "Falha ao gerar resposta do chat.";
+      let message = appState.ui.chatError;
       try {
         const errorPayload = await response.json();
         if (errorPayload?.detail) {
@@ -271,7 +319,7 @@ const runChatCompletion = async () => {
     appState.chatMessages.pop();
     appState.chatMessages.push({
       role: "assistant",
-      text: error.message || "Erro no chat.",
+      text: error.message || appState.ui.chatFallbackError,
     });
     renderChatMessages();
   } finally {
@@ -285,7 +333,7 @@ const runTokenizer = async (inputText) => {
     return;
   }
   if (inputText.trim() === "") {
-    clearTokenizerOutputs("Digite um texto para ver os tokens.");
+    clearTokenizerOutputs(appState.ui.tokenizerEmptyMessage);
     return;
   }
 
@@ -298,7 +346,7 @@ const runTokenizer = async (inputText) => {
       body: JSON.stringify({ text: inputText }),
     });
     if (!response.ok) {
-      throw new Error("Falha ao tokenizar o texto.");
+      throw new Error(appState.ui.tokenizerRequestError);
     }
     const payload = await response.json();
     if (requestId !== tokenizerRequestCounter) {
@@ -306,7 +354,7 @@ const runTokenizer = async (inputText) => {
     }
     renderTokenizerResult(payload);
   } catch (error) {
-    clearTokenizerOutputs(error.message || "Erro ao tokenizar.");
+    clearTokenizerOutputs(error.message || appState.ui.tokenizerFallbackError);
   }
 };
 
@@ -320,7 +368,7 @@ const renderStep = () => {
   stepTitle.textContent = step.title;
   stepSubtitle.textContent = step.subtitle || "";
   stepSubtitle.classList.toggle("hidden", !step.subtitle);
-  stepBody.textContent = step.body || "";
+  stepBody.innerHTML = step.body || "";
   stepBody.classList.toggle("hidden", !step.body);
   const useCenterLargeImage = step.imageLayout === "center-large";
   stepCard.classList.toggle("image-center-large", useCenterLargeImage);
@@ -394,7 +442,7 @@ const renderStep = () => {
       chatInput.value = "";
     }
     appState.chatMessages = [
-      { role: "assistant", text: "Olá! Escreva sua mensagem para começarmos." },
+      { role: "assistant", text: appState.ui.chatWelcome },
     ];
     renderChatMessages();
   } else {
@@ -443,8 +491,10 @@ const loadLanguage = async (languageCode) => {
     },
   ];
   appState.labels = { ...defaultLabels, ...(payload.navigation || {}) };
+  appState.ui = { ...defaultUiLabels, ...(payload.ui || {}) };
   appTitle.textContent = payload.appTitle || "LLM Lecture";
 
+  renderStaticUiText();
   renderStep();
   updateCurrentLanguage(languageCode);
   closeLanguageMenu();
