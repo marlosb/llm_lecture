@@ -13,13 +13,23 @@ echo "Creating virtual environment with uv..."
 uv venv
 
 echo "Installing dependencies with uv..."
-uv pip install --python .venv/bin/python fastapi uvicorn huggingface_hub transformers torch
+PYTHON_BIN=".venv/bin/python"
+CUDA_INDEX_URL="https://download.pytorch.org/whl/cu121"
+BASE_PACKAGES=(fastapi uvicorn huggingface_hub transformers)
+
+if command -v nvidia-smi >/dev/null 2>&1 && nvidia-smi -L >/dev/null 2>&1; then
+  echo "NVIDIA GPU detected. Installing CUDA-enabled PyTorch (cu121)..."
+  uv pip install --python "$PYTHON_BIN" --extra-index-url "$CUDA_INDEX_URL" "${BASE_PACKAGES[@]}" torch
+else
+  echo "No NVIDIA GPU detected. Installing default PyTorch build..."
+  uv pip install --python "$PYTHON_BIN" "${BASE_PACKAGES[@]}" torch
+fi
 
 echo "Activating virtual environment..."
 source .venv/bin/activate
 
 echo "Running Python installer (install.py)..."
-python install.py
+python install.py --skip-deps
 
 cat <<'EOF'
 

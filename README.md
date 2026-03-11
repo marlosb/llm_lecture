@@ -67,6 +67,8 @@ secrets.txt                       # local secrets (gitignored)
 .\run.ps1
 ```
 
+`install.ps1` auto-detects NVIDIA GPUs (via `nvidia-smi`) and installs CUDA-enabled PyTorch (`cu121`) when available. Otherwise, it installs the default PyTorch build.
+
 ### Linux/macOS (bash)
 
 ```bash
@@ -74,6 +76,8 @@ chmod +x install.sh run.sh
 ./install.sh
 ./run.sh
 ```
+
+`install.sh` also auto-detects NVIDIA GPUs (via `nvidia-smi`) and installs CUDA-enabled PyTorch (`cu121`) when available.
 
 The app will run at:
 

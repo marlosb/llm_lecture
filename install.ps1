@@ -13,13 +13,32 @@ Write-Host "Creating virtual environment with uv..."
 uv venv
 
 Write-Host "Installing dependencies with uv..."
-uv pip install --python .venv\Scripts\python.exe fastapi uvicorn huggingface_hub transformers torch
+$pythonPath = ".venv\Scripts\python.exe"
+$basePackages = @("fastapi", "uvicorn", "huggingface_hub", "transformers")
+$cudaIndexUrl = "https://download.pytorch.org/whl/cu121"
+$hasNvidiaGpu = $false
+$nvidiaSmi = Get-Command nvidia-smi -ErrorAction SilentlyContinue
+if ($nvidiaSmi) {
+    & $nvidiaSmi.Source -L *> $null
+    if ($LASTEXITCODE -eq 0) {
+        $hasNvidiaGpu = $true
+    }
+}
+
+if ($hasNvidiaGpu) {
+    Write-Host "NVIDIA GPU detected. Installing CUDA-enabled PyTorch (cu121)..."
+    uv pip install --python $pythonPath --extra-index-url $cudaIndexUrl @basePackages torch
+}
+else {
+    Write-Host "No NVIDIA GPU detected. Installing default PyTorch build..."
+    uv pip install --python $pythonPath @basePackages torch
+}
 
 Write-Host "Activating virtual environment..."
 . .\.venv\Scripts\Activate.ps1
 
 Write-Host "Running Python installer (install.py)..."
-python .\install.py
+python .\install.py --skip-deps
 
 Write-Host ""
 Write-Host "Installation completed."
