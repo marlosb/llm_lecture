@@ -56,7 +56,7 @@
       "title": "Tokens",
       "subtitle": "Como são criados?",
       "body": "Assim como o restante das partes de um modelo de IA, <strong>o vocabulário de tokens é aprendido a partir dos textos</strong>, porém antes da criação do modelo em si. Chamamos esse momento de <strong>treino do tokenizador</strong>.\n\nPrimeiro, os desenvolvedores do modelo definem o tamanho do vocabulário de tokens; por exemplo, para o GPT‑4 definiram 100 mil tokens.\n\nDepois, eles separam uma parte de todos os textos que serão usados para o treino do modelo e <strong>um algoritmo vasculha essa parte do texto procurando as sequências de caracteres que mais se repetem</strong>.\n\nPor fim, começando da sequência que mais se repete, <strong>são assinalados os IDs</strong> até chegar ao último ID disponível (100.000 no caso do GPT‑4).\n\n<strong>Curiosidade:</strong> na técnica que nós usamos (BEP) para criar o tokenizador que você acabou de testar na página anterior, se o ID da palavra \"gato\" (ex. 3400) tiver um número menor do que o ID da palavra \"cachorro\" (ex. 4200), sabemos que a palavra \"gato\" apareceu mais vezes nos textos que foram usados na criação do tokenizador. Volte na tela anterior e verifique se foi o caso!",
-      "progressColor": "primary"
+      "progressColor": "blue"
     },
     {
       "title": "Treinamento Fundamental",

@@ -56,7 +56,7 @@
       "title": "Tokens",
       "subtitle": "How are they created?",
       "body": "Like other parts of an AI model, <strong>the token vocabulary is learned from text</strong>, but before the model itself is trained. We call this <strong>tokenizer training</strong>.\n\nFirst, model developers define the vocabulary size; for example, GPT-4 used 100 thousand tokens.\n\nNext, they select a subset of the training corpus, and <strong>an algorithm scans it to find the most frequent character sequences</strong>.\n\nFinally, starting with the most frequent sequences, <strong>IDs are assigned</strong> until the highest available ID is used (100,000 in GPT-4's case).\n\n<strong>Fun fact:</strong> in the BPE technique used to build the tokenizer you tested, if the ID for the word 'cat' (for example, 3400) is smaller than the ID for 'dog' (for example, 4200), it means 'cat' appeared more often in the texts used to build the tokenizer. Go back to the previous step and check if that happens!",
-      "progressColor": "primary"
+      "progressColor": "blue"
     },
     {
       "title": "Foundational Training",
