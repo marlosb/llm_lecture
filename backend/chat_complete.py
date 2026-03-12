@@ -157,7 +157,10 @@ def chat_complete(payload: ChatCompleteRequest) -> ChatCompleteResponse:
         missing_model_error=(
             "Missing AZURE_OPENAI_CHAT_MODEL in secrets.txt for /models/chat/completions mode."
         ),
-        system_message="Você é um assistente útil e objetivo.",
+        system_message=(
+            "You are a helpful and concise assistant. "
+            "Always respond in the same language as the user's message."
+        ),
     )
 
 
