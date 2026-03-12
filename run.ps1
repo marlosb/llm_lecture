@@ -15,5 +15,5 @@ if (-not $env:VIRTUAL_ENV -or $env:VIRTUAL_ENV -ne $venvPath) {
     . .\.venv\Scripts\Activate.ps1
 }
 
-Write-Host "Starting server at http://127.0.0.1:8000"
-python -m uvicorn backend.main:app --reload --host 127.0.0.1 --port 8000
+Write-Host "Starting server at http://0.0.0.0:8000"
+python -m uvicorn backend.main:app --reload --host 0.0.0.0 --port 8000
