@@ -80,6 +80,40 @@ const TOKEN_COLORS = [
   "#dfdcff",
   "#f6d8ff",
 ];
+const SHARED_STEP_MEDIA = {
+  0: {
+    image: "/static/images/step1.png",
+    imageAlt: "Abstract blocks representing model construction",
+    imageLayout: "right-with-text",
+  },
+  2: {
+    image: "/static/images/tokens.png",
+    imageAlt: "Tokenization examples",
+    imageLayout: "center-large",
+  },
+  5: {
+    inlineBodyImage: {
+      src: "/static/images/step6.png",
+      alt: "Books, newspapers and magazines used as training data",
+      afterParagraph: 1,
+    },
+  },
+  8: {
+    image: "/static/images/step9.png",
+    imageAlt: "Transition from text completion to chat interaction",
+    imageLayout: "left-with-text",
+  },
+  12: {
+    image: "/static/images/step13.png",
+    imageAlt: "Reasoning workflow leading to improved outcomes",
+    imageLayout: "left-with-text",
+  },
+  14: {
+    image: "/static/images/step15.png",
+    imageAlt: "Overview of LLM journey from data to aligned chat behavior",
+    imageLayout: "below-centered",
+  },
+};
 let tokenizerDebounceHandle = null;
 let tokenizerRequestCounter = 0;
 let idleTimeoutHandle = null;
@@ -216,6 +250,33 @@ const renderTokenizerResult = (result) => {
     tokenizerColoredOutput.appendChild(tokenSpan);
   });
   tokenizerIdsOutput.textContent = `${appState.ui.tokenizerIdsLabel}: ${result.token_ids.join(", ")}`;
+};
+
+const renderStepBody = (stepBodyHtml, inlineBodyImageConfig) => {
+  stepBody.innerHTML = "";
+  if (!stepBodyHtml) {
+    return;
+  }
+
+  const paragraphs = stepBodyHtml.split(/\n\s*\n/);
+  const insertAfter = Number.isInteger(inlineBodyImageConfig?.afterParagraph)
+    ? inlineBodyImageConfig.afterParagraph
+    : -1;
+
+  paragraphs.forEach((paragraphHtml, index) => {
+    const paragraph = document.createElement("p");
+    paragraph.className = "step-body-paragraph";
+    paragraph.innerHTML = paragraphHtml.trim();
+    stepBody.appendChild(paragraph);
+
+    if (index === insertAfter && inlineBodyImageConfig?.src) {
+      const inlineImage = document.createElement("img");
+      inlineImage.className = "step-inline-image";
+      inlineImage.src = inlineBodyImageConfig.src;
+      inlineImage.alt = inlineBodyImageConfig.alt || "";
+      stepBody.appendChild(inlineImage);
+    }
+  });
 };
 
 const runTextCompletion = async () => {
@@ -380,14 +441,27 @@ const renderStep = () => {
   stepTitle.textContent = step.title;
   stepSubtitle.textContent = step.subtitle || "";
   stepSubtitle.classList.toggle("hidden", !step.subtitle);
-  stepBody.innerHTML = step.body || "";
+  const stepMedia = SHARED_STEP_MEDIA[appState.currentStep] || {};
+  renderStepBody(step.body || "", stepMedia.inlineBodyImage);
   stepBody.classList.toggle("hidden", !step.body);
-  const useCenterLargeImage = step.imageLayout === "center-large";
+  const stepImageSource = stepMedia.image || step.image;
+  const stepImageAlt = stepMedia.imageAlt || step.imageAlt || step.title;
+  const stepImageLayout = stepMedia.imageLayout || step.imageLayout;
+  const useCenterLargeImage = stepImageLayout === "center-large";
+  const useRightWithTextImage = stepImageLayout === "right-with-text";
+  const useLeftWithTextImage = stepImageLayout === "left-with-text";
+  const useBelowCenteredImage = stepImageLayout === "below-centered";
   stepCard.classList.toggle("image-center-large", useCenterLargeImage);
-  if (step.image) {
-    stepImage.src = step.image;
-    stepImage.alt = step.imageAlt || step.title;
+  stepCard.classList.toggle("image-right-with-text", useRightWithTextImage);
+  stepCard.classList.toggle("image-left-with-text", useLeftWithTextImage);
+  stepCard.classList.toggle("image-below-centered", useBelowCenteredImage);
+  if (stepImageSource) {
+    stepImage.src = stepImageSource;
+    stepImage.alt = stepImageAlt;
     stepImage.classList.toggle("step-image-center-large", useCenterLargeImage);
+    stepImage.classList.toggle("step-image-right-with-text", useRightWithTextImage);
+    stepImage.classList.toggle("step-image-left-with-text", useLeftWithTextImage);
+    stepImage.classList.toggle("step-image-below-centered", useBelowCenteredImage);
     if (useCenterLargeImage) {
       stepImage.style.margin = "20px auto 0";
       stepImage.style.alignSelf = "center";
@@ -403,6 +477,9 @@ const renderStep = () => {
   } else {
     stepImage.classList.add("hidden");
     stepImage.classList.remove("step-image-center-large");
+    stepImage.classList.remove("step-image-right-with-text");
+    stepImage.classList.remove("step-image-left-with-text");
+    stepImage.classList.remove("step-image-below-centered");
     stepImage.style.margin = "";
     stepImage.style.alignSelf = "";
     stepImage.style.width = "";
