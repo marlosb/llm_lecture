@@ -8,7 +8,7 @@ MODEL_ID: str = "openai-community/gpt2"
 TARGET_DIR: Path = (
     Path(__file__).resolve().parent / "backend" / "models" / "openai-community-gpt2"
 )
-BASE_PACKAGES: tuple[str, ...] = ("fastapi", "uvicorn", "huggingface_hub", "transformers")
+BASE_PACKAGES: tuple[str, ...] = ("fastapi", "uvicorn", "huggingface_hub", "transformers", "tiktoken")
 TORCH_CUDA_EXTRA_INDEX_URL: str = "https://download.pytorch.org/whl/cu121"
 
 

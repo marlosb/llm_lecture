@@ -346,7 +346,19 @@ const runTokenizer = async (inputText) => {
       body: JSON.stringify({ text: inputText }),
     });
     if (!response.ok) {
-      throw new Error(appState.ui.tokenizerRequestError);
+      const rawErrorBody = await response.text();
+      let backendMessage = "";
+      if (rawErrorBody) {
+        try {
+          const errorPayload = JSON.parse(rawErrorBody);
+          if (errorPayload && typeof errorPayload.detail === "string") {
+            backendMessage = errorPayload.detail;
+          }
+        } catch (parseError) {
+          backendMessage = rawErrorBody.trim();
+        }
+      }
+      throw new Error(backendMessage || appState.ui.tokenizerRequestError);
     }
     const payload = await response.json();
     if (requestId !== tokenizerRequestCounter) {

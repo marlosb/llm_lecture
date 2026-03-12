@@ -122,3 +122,9 @@ AZURE_OPENAI_REASONING_API_VERSION=2024-05-01-preview
 - Model artifacts and Python caches are excluded via `.gitignore`.
 - If you plan to deploy publicly, add authentication, rate limiting, and stricter secret/error handling.
 
+## Troubleshooting `/api/tokenize` (Step 4)
+
+- If Step 4 shows "Failed to tokenize text.", re-run `install.ps1` (Windows) or `install.sh` (Linux/macOS) to ensure all dependencies are installed, including `tiktoken`.
+- Check server output for the full exception traceback. The backend now logs tokenizer failures with details.
+- The frontend now shows backend `detail` messages for tokenizer errors, which helps diagnose missing files/dependencies on remote machines.
+

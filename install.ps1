@@ -14,7 +14,7 @@ uv venv
 
 Write-Host "Installing dependencies with uv..."
 $pythonPath = ".venv\Scripts\python.exe"
-$basePackages = @("fastapi", "uvicorn", "huggingface_hub", "transformers")
+$basePackages = @("fastapi", "uvicorn", "huggingface_hub", "transformers", "tiktoken")
 $cudaIndexUrl = "https://download.pytorch.org/whl/cu121"
 $hasNvidiaGpu = $false
 $nvidiaSmi = Get-Command nvidia-smi -ErrorAction SilentlyContinue

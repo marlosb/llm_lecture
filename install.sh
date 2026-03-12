@@ -15,7 +15,7 @@ uv venv
 echo "Installing dependencies with uv..."
 PYTHON_BIN=".venv/bin/python"
 CUDA_INDEX_URL="https://download.pytorch.org/whl/cu121"
-BASE_PACKAGES=(fastapi uvicorn huggingface_hub transformers)
+BASE_PACKAGES=(fastapi uvicorn huggingface_hub transformers tiktoken)
 
 if command -v nvidia-smi >/dev/null 2>&1 && nvidia-smi -L >/dev/null 2>&1; then
   echo "NVIDIA GPU detected. Installing CUDA-enabled PyTorch (cu121)..."

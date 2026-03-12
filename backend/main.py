@@ -1,4 +1,5 @@
 import json
+import logging
 from pathlib import Path
 from typing import Any
 
@@ -34,6 +35,7 @@ SUPPORTED_LANGUAGE_FILES: dict[str, Path] = {
 
 app: FastAPI = FastAPI(title="LLM Lecture App")
 app.mount("/static", StaticFiles(directory=str(STATIC_DIR)), name="static")
+LOGGER: logging.Logger = logging.getLogger(__name__)
 
 
 @app.get("/", response_class=FileResponse)
@@ -62,10 +64,17 @@ def tokenize_text(payload: TokenizeRequest) -> TokenizeResponse:
         return run_tokenize_text(payload)
     except FileNotFoundError as exc:
         raise HTTPException(status_code=500, detail=str(exc)) from exc
-    except Exception as exc:
+    except ModuleNotFoundError as exc:
+        LOGGER.exception("Tokenizer dependency missing.")
         raise HTTPException(
             status_code=500,
-            detail="Failed to load tokenizer.",
+            detail=f"Missing Python dependency: {exc.name}. Run install script again.",
+        ) from exc
+    except Exception as exc:
+        LOGGER.exception("Unexpected tokenizer failure.")
+        raise HTTPException(
+            status_code=500,
+            detail=f"Failed to load tokenizer: {type(exc).__name__}: {exc}",
         ) from exc
 
 
