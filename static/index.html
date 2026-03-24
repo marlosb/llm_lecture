@@ -5,6 +5,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>LLM Lecture</title>
     <link rel="stylesheet" href="/static/css/styles.css" />
+    <link
+      rel="stylesheet"
+      href="/static/vendor/kioskboard/kioskboard-2.3.0.min.css"
+    />
   </head>
   <body>
     <main class="app-shell">
@@ -73,7 +77,10 @@
             <label for="tokenizer-input" class="tokenizer-label">Digite um texto para tokenizar</label>
             <textarea
               id="tokenizer-input"
-              class="tokenizer-input"
+              class="tokenizer-input js-kioskboard-input"
+              data-kioskboard-type="all"
+              data-kioskboard-placement="bottom"
+              data-kioskboard-specialcharacters="true"
               placeholder="Exemplo: LLMs são incríveis!"
             ></textarea>
             <div id="tokenizer-token-count" class="tokenizer-token-count"></div>
@@ -84,7 +91,10 @@
             <label for="pretrain-input" class="tokenizer-label">Digite o início de um texto</label>
             <textarea
               id="pretrain-input"
-              class="tokenizer-input"
+              class="tokenizer-input js-kioskboard-input"
+              data-kioskboard-type="all"
+              data-kioskboard-placement="bottom"
+              data-kioskboard-specialcharacters="true"
               placeholder="Exemplo: A inteligência artificial"
             ></textarea>
             <button id="pretrain-submit-button" class="nav-button nav-next" type="button">
@@ -96,7 +106,10 @@
             <div class="chat-composer">
               <textarea
                 id="chat-input"
-                class="tokenizer-input chat-input"
+                class="tokenizer-input chat-input js-kioskboard-input"
+                data-kioskboard-type="all"
+                data-kioskboard-placement="bottom"
+                data-kioskboard-specialcharacters="true"
                 placeholder="Exemplo: Explique o que é pós-treinamento."
               ></textarea>
               <button id="chat-submit-button" class="nav-button nav-next" type="button">
@@ -112,6 +125,7 @@
         </section>
       </section>
     </main>
+    <script src="/static/vendor/kioskboard/kioskboard-2.3.0.min.js"></script>
     <script src="/static/js/app.js"></script>
   </body>
 </html>

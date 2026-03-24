@@ -119,6 +119,28 @@ let tokenizerRequestCounter = 0;
 let idleTimeoutHandle = null;
 let autoRefreshTimeoutHandle = null;
 let autoRefreshIntervalHandle = null;
+let tokenizerWatchIntervalHandle = null;
+let tokenizerLastObservedValue = "";
+let kioskboardHasRun = false;
+
+const KIOSKBOARD_INPUT_SELECTOR = ".js-kioskboard-input";
+const KIOSKBOARD_KEYS_BY_LANGUAGE = {
+  "en-us": [
+    { 0: "Q", 1: "W", 2: "E", 3: "R", 4: "T", 5: "Y", 6: "U", 7: "I", 8: "O", 9: "P" },
+    { 0: "A", 1: "S", 2: "D", 3: "F", 4: "G", 5: "H", 6: "J", 7: "K", 8: "L" },
+    { 0: "Z", 1: "X", 2: "C", 3: "V", 4: "B", 5: "N", 6: "M" },
+  ],
+  "pt-br": [
+    { 0: "Q", 1: "W", 2: "E", 3: "R", 4: "T", 5: "Y", 6: "U", 7: "I", 8: "O", 9: "P" },
+    { 0: "A", 1: "S", 2: "D", 3: "F", 4: "G", 5: "H", 6: "J", 7: "K", 8: "L", 9: "Ç" },
+    { 0: "Z", 1: "X", 2: "C", 3: "V", 4: "B", 5: "N", 6: "M" },
+  ],
+  "es-mx": [
+    { 0: "Q", 1: "W", 2: "E", 3: "R", 4: "T", 5: "Y", 6: "U", 7: "I", 8: "O", 9: "P" },
+    { 0: "A", 1: "S", 2: "D", 3: "F", 4: "G", 5: "H", 6: "J", 7: "K", 8: "L", 9: "Ñ" },
+    { 0: "Z", 1: "X", 2: "C", 3: "V", 4: "B", 5: "N", 6: "M" },
+  ],
+};
 
 const getSegmentClass = (segmentIndex) => {
   const customColor = appState.steps[segmentIndex]?.progressColor;
@@ -156,6 +178,92 @@ const renderStaticUiText = () => {
   }
   pretrainSubmitButton.textContent = appState.ui.pretrainSubmit;
   chatSubmitButton.textContent = appState.ui.chatSubmit;
+};
+
+const getKioskboardSpaceText = () => {
+  if (appState.currentLanguage === "es-mx") {
+    return "Espacio";
+  }
+  if (appState.currentLanguage === "pt-br") {
+    return "Espaço";
+  }
+  return "Space";
+};
+
+const ensureFocusedInputVisibleAboveKeyboard = () => {
+  const activeElement = document.activeElement;
+  const keyboardElement = document.getElementById("KioskBoard-VirtualKeyboard");
+  if (!(activeElement instanceof HTMLElement) || !activeElement.matches(KIOSKBOARD_INPUT_SELECTOR) || !keyboardElement) {
+    return;
+  }
+  const keyboardTop = keyboardElement.getBoundingClientRect().top;
+  const inputRect = activeElement.getBoundingClientRect();
+  if (inputRect.bottom > keyboardTop - 10) {
+    window.scrollBy({
+      top: inputRect.bottom - keyboardTop + 28,
+      behavior: "smooth",
+    });
+  }
+};
+
+const syncKioskboardBodyState = () => {
+  const keyboardElement = document.getElementById("KioskBoard-VirtualKeyboard");
+  const keyboardVisible = Boolean(keyboardElement);
+  document.body.classList.toggle("kioskboard-visible", keyboardVisible);
+  if (keyboardVisible) {
+    ensureFocusedInputVisibleAboveKeyboard();
+  }
+};
+
+const initKioskBoard = () => {
+  if (!window.KioskBoard) {
+    return;
+  }
+  const keysArrayOfObjects = KIOSKBOARD_KEYS_BY_LANGUAGE[appState.currentLanguage] || KIOSKBOARD_KEYS_BY_LANGUAGE["en-us"];
+  window.KioskBoard.init({
+    keysArrayOfObjects,
+    keysJsonUrl: null,
+    keysSpecialCharsArrayOfStrings: [
+      "á", "à", "â", "ã", "ä",
+      "é", "è", "ê", "ë",
+      "í", "ì", "î", "ï",
+      "ó", "ò", "ô", "õ", "ö",
+      "ú", "ù", "û", "ü",
+      "ç", "ñ",
+      "Á", "À", "Â", "Ã", "Ä",
+      "É", "È", "Ê", "Ë",
+      "Í", "Ì", "Î", "Ï",
+      "Ó", "Ò", "Ô", "Õ", "Ö",
+      "Ú", "Ù", "Û", "Ü",
+      "Ç", "Ñ",
+    ],
+    keysNumpadArrayOfNumbers: null,
+    language: "en",
+    theme: "light",
+    autoScroll: true,
+    capsLockActive: false,
+    allowRealKeyboard: false,
+    allowMobileKeyboard: false,
+    cssAnimations: true,
+    cssAnimationsDuration: 360,
+    cssAnimationsStyle: "slide",
+    keysAllowSpacebar: true,
+    keysSpacebarText: getKioskboardSpaceText(),
+    keysFontFamily: "Segoe UI, Arial, sans-serif",
+    keysFontSize: "20px",
+    keysFontWeight: "normal",
+    keysIconSize: "22px",
+    keysEnterText: "Enter",
+    keysEnterCallback: () => {
+      ensureFocusedInputVisibleAboveKeyboard();
+    },
+    keysEnterCanClose: false,
+  });
+  if (!kioskboardHasRun) {
+    window.KioskBoard.run(KIOSKBOARD_INPUT_SELECTOR);
+    kioskboardHasRun = true;
+  }
+  syncKioskboardBodyState();
 };
 
 const renderProgress = () => {
@@ -584,6 +692,7 @@ const loadLanguage = async (languageCode) => {
   appTitle.textContent = payload.appTitle || "LLM Lecture";
 
   renderStaticUiText();
+  initKioskBoard();
   renderStep();
   updateCurrentLanguage(languageCode);
   closeLanguageMenu();
@@ -653,6 +762,39 @@ tokenizerInput.addEventListener("input", () => {
   }, 250);
 });
 
+const queueTokenizerRun = () => {
+  clearTimeout(tokenizerDebounceHandle);
+  tokenizerDebounceHandle = setTimeout(() => {
+    runTokenizer(tokenizerInput.value);
+  }, 250);
+};
+
+tokenizerInput.addEventListener("change", queueTokenizerRun);
+
+const startTokenizerWatch = () => {
+  if (tokenizerWatchIntervalHandle) {
+    return;
+  }
+  tokenizerLastObservedValue = tokenizerInput.value;
+  tokenizerWatchIntervalHandle = setInterval(() => {
+    if (document.activeElement !== tokenizerInput) {
+      return;
+    }
+    if (tokenizerInput.value !== tokenizerLastObservedValue) {
+      tokenizerLastObservedValue = tokenizerInput.value;
+      queueTokenizerRun();
+    }
+  }, 120);
+};
+
+const stopTokenizerWatch = () => {
+  if (!tokenizerWatchIntervalHandle) {
+    return;
+  }
+  clearInterval(tokenizerWatchIntervalHandle);
+  tokenizerWatchIntervalHandle = null;
+};
+
 pretrainSubmitButton.addEventListener("click", () => {
   runTextCompletion();
 });
@@ -670,4 +812,51 @@ idleWarningCancel.addEventListener("click", () => {
   window.addEventListener(eventName, markUserActivity, { passive: true });
 });
 
+document.addEventListener("focusin", (event) => {
+  if (event.target instanceof HTMLElement && event.target.matches(KIOSKBOARD_INPUT_SELECTOR)) {
+    setTimeout(() => {
+      syncKioskboardBodyState();
+      ensureFocusedInputVisibleAboveKeyboard();
+    }, 0);
+  }
+  if (event.target === tokenizerInput) {
+    startTokenizerWatch();
+  }
+});
+
+document.addEventListener("focusout", (event) => {
+  if (event.target instanceof HTMLElement && event.target.matches(KIOSKBOARD_INPUT_SELECTOR)) {
+    setTimeout(syncKioskboardBodyState, 60);
+  }
+  if (event.target === tokenizerInput) {
+    stopTokenizerWatch();
+  }
+});
+
+window.addEventListener("resize", () => {
+  ensureFocusedInputVisibleAboveKeyboard();
+  syncKioskboardBodyState();
+});
+
+const kioskboardObserver = new MutationObserver(() => {
+  syncKioskboardBodyState();
+});
+kioskboardObserver.observe(document.body, { childList: true, subtree: true });
+
+document.addEventListener("click", (event) => {
+  const keyboardContainer = event.target instanceof HTMLElement
+    ? event.target.closest("#KioskBoard-VirtualKeyboard")
+    : null;
+  if (!keyboardContainer) {
+    return;
+  }
+  if (document.activeElement === tokenizerInput) {
+    queueTokenizerRun();
+  }
+});
+
+initKioskBoard();
+if (document.activeElement === tokenizerInput) {
+  startTokenizerWatch();
+}
 startIdleTimer();

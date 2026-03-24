@@ -32,12 +32,29 @@ body {
   font-family: var(--font-body);
   background: var(--color-bg);
   color: var(--color-text);
+  transition: padding-bottom 0.2s ease;
 }
 
 .app-shell {
   width: min(980px, 92vw);
   margin: 0 auto;
   padding: 48px 0 64px;
+}
+
+body.kioskboard-visible {
+  padding-bottom: 310px;
+}
+
+#KioskBoard-VirtualKeyboard {
+  z-index: 120 !important;
+  max-width: none !important;
+  border-radius: 12px 12px 0 0 !important;
+}
+
+@media (max-width: 767px) {
+  body.kioskboard-visible {
+    padding-bottom: 230px;
+  }
 }
 
 .hidden {
