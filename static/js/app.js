@@ -124,6 +124,7 @@ let tokenizerLastObservedValue = "";
 let kioskboardHasRun = false;
 
 const KIOSKBOARD_INPUT_SELECTOR = ".js-kioskboard-input";
+const KIOSKBOARD_CLOSE_BUTTON_CLASS = "kioskboard-close-button";
 const KIOSKBOARD_KEYS_BY_LANGUAGE = {
   "en-us": [
     { 0: "Q", 1: "W", 2: "E", 3: "R", 4: "T", 5: "Y", 6: "U", 7: "I", 8: "O", 9: "P" },
@@ -190,6 +191,53 @@ const getKioskboardSpaceText = () => {
   return "Space";
 };
 
+const getKioskboardCloseText = () => {
+  if (appState.currentLanguage === "es-mx") {
+    return "Cerrar";
+  }
+  if (appState.currentLanguage === "pt-br") {
+    return "Fechar";
+  }
+  return "Close";
+};
+
+const closeKioskboard = () => {
+  const activeElement = document.activeElement;
+  if (activeElement instanceof HTMLElement && activeElement.matches(KIOSKBOARD_INPUT_SELECTOR)) {
+    activeElement.blur();
+  }
+
+  const keyboardElement = document.getElementById("KioskBoard-VirtualKeyboard");
+  if (keyboardElement) {
+    keyboardElement.remove();
+  }
+  syncKioskboardBodyState();
+};
+
+const ensureKioskboardCloseButton = () => {
+  const keyboardElement = document.getElementById("KioskBoard-VirtualKeyboard");
+  if (!keyboardElement) {
+    return;
+  }
+
+  let closeButton = keyboardElement.querySelector(`.${KIOSKBOARD_CLOSE_BUTTON_CLASS}`);
+  if (!(closeButton instanceof HTMLButtonElement)) {
+    closeButton = document.createElement("button");
+    closeButton.type = "button";
+    closeButton.className = KIOSKBOARD_CLOSE_BUTTON_CLASS;
+    closeButton.textContent = "×";
+    closeButton.addEventListener("click", (event) => {
+      event.preventDefault();
+      event.stopPropagation();
+      closeKioskboard();
+    });
+    keyboardElement.appendChild(closeButton);
+  }
+
+  closeButton.setAttribute("aria-label", getKioskboardCloseText());
+  closeButton.title = getKioskboardCloseText();
+};
+
 const ensureFocusedInputVisibleAboveKeyboard = () => {
   const activeElement = document.activeElement;
   const keyboardElement = document.getElementById("KioskBoard-VirtualKeyboard");
@@ -211,6 +259,7 @@ const syncKioskboardBodyState = () => {
   const keyboardVisible = Boolean(keyboardElement);
   document.body.classList.toggle("kioskboard-visible", keyboardVisible);
   if (keyboardVisible) {
+    ensureKioskboardCloseButton();
     ensureFocusedInputVisibleAboveKeyboard();
   }
 };
