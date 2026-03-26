@@ -51,6 +51,30 @@ body.kioskboard-visible {
   border-radius: 12px 12px 0 0 !important;
 }
 
+#KioskBoard-VirtualKeyboard .kioskboard-close-button {
+  position: absolute;
+  top: 8px;
+  right: 10px;
+  width: 30px;
+  height: 30px;
+  border: 0;
+  border-radius: 999px;
+  background: rgb(21 34 55 / 12%);
+  color: #152237;
+  font-size: 24px;
+  line-height: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+#KioskBoard-VirtualKeyboard .kioskboard-close-button:hover,
+#KioskBoard-VirtualKeyboard .kioskboard-close-button:focus-visible {
+  background: rgb(21 34 55 / 20%);
+  outline: none;
+}
+
 @media (max-width: 767px) {
   body.kioskboard-visible {
     padding-bottom: 230px;
