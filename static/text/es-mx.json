@@ -6,6 +6,7 @@
     "counterPrefix": "PARTE"
   },
   "ui": {
+    "home": "Inicio",
     "progressAriaLabel": "Ir a la parte {part}",
     "idleWarningMessage": "Página inactiva. Actualización automática en {seconds}s.",
     "idleWarningCancel": "Cancelar",

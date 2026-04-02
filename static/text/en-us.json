@@ -6,6 +6,7 @@
     "counterPrefix": "PART"
   },
   "ui": {
+    "home": "Home",
     "progressAriaLabel": "Go to part {part}",
     "idleWarningMessage": "Page inactive. Auto refresh in {seconds}s.",
     "idleWarningCancel": "Cancel",
