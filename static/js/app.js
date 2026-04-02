@@ -3,6 +3,8 @@ const contentScreen = document.getElementById("content-screen");
 const languageMenuButton = document.getElementById("language-menu-button");
 const languageMenu = document.getElementById("language-menu");
 const currentLanguageFlag = document.getElementById("current-language-flag");
+const homeButton = document.getElementById("home-button");
+const homeButtonLabel = document.getElementById("home-button-label");
 
 const appTitle = document.getElementById("app-title");
 const progressBar = document.getElementById("progress-bar");
@@ -51,6 +53,7 @@ const appState = {
     counterPrefix: "PARTE",
   },
   ui: {
+    home: "Inicio",
     progressAriaLabel: "Ir para parte {part}",
     idleWarningMessage: "Página inativa. Atualização automática em {seconds}s.",
     idleWarningCancel: "Cancelar",
@@ -168,6 +171,9 @@ const formatLabel = (template, values = {}) => {
 };
 
 const renderStaticUiText = () => {
+  homeButton.setAttribute("aria-label", appState.ui.home);
+  homeButton.title = appState.ui.home;
+  homeButtonLabel.textContent = appState.ui.home;
   idleWarningCancel.textContent = appState.ui.idleWarningCancel;
   const tokenizerLabel = document.querySelector("label[for='tokenizer-input']");
   const pretrainLabel = document.querySelector("label[for='pretrain-input']");
@@ -712,6 +718,13 @@ const showContentScreen = () => {
   startIdleTimer();
 };
 
+const showLanguageScreen = () => {
+  closeLanguageMenu();
+  hideIdleWarning();
+  languageScreen.classList.remove("hidden");
+  contentScreen.classList.add("hidden");
+};
+
 const updateCurrentLanguage = (languageCode) => {
   currentLanguageFlag.src = flagByLanguage[languageCode];
   currentLanguageFlag.alt = `Selected language ${languageCode}`;
@@ -762,6 +775,10 @@ languageMenuButton.addEventListener("click", () => {
   const expanded = languageMenuButton.getAttribute("aria-expanded") === "true";
   languageMenuButton.setAttribute("aria-expanded", String(!expanded));
   languageMenu.classList.toggle("hidden", expanded);
+});
+
+homeButton.addEventListener("click", () => {
+  showLanguageScreen();
 });
 
 document.addEventListener("click", (event) => {
