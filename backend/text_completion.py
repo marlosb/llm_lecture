@@ -1,12 +1,14 @@
 from functools import lru_cache
-from pathlib import Path
 from typing import Any
 
 from pydantic import BaseModel
 from pydantic import Field
 
+from backend.model_config import MODEL_DIR
 
-MODEL_DIR: Path = Path(__file__).resolve().parent / "models" / "openai-community-gpt2"
+
+class ContextLengthError(ValueError):
+    pass
 
 
 class CompletionRequest(BaseModel):
@@ -21,7 +23,7 @@ class CompletionResponse(BaseModel):
 
 
 @lru_cache(maxsize=1)
-def get_gpt2_runtime() -> tuple[Any, Any, str]:
+def get_text_completion_runtime() -> tuple[Any, Any, str]:
     if not MODEL_DIR.exists():
         raise FileNotFoundError(
             f"Model directory not found: {MODEL_DIR}. Run install.py first."
@@ -36,35 +38,48 @@ def get_gpt2_runtime() -> tuple[Any, Any, str]:
             "Missing dependencies. Run install.py to install required packages."
         ) from exc
 
+    device: str = "cuda" if torch.cuda.is_available() else "cpu"
+    dtype = torch.float16 if device == "cuda" else torch.float32
     tokenizer = AutoTokenizer.from_pretrained(str(MODEL_DIR), local_files_only=True)
-    model = AutoModelForCausalLM.from_pretrained(str(MODEL_DIR), local_files_only=True)
+    model = AutoModelForCausalLM.from_pretrained(
+        str(MODEL_DIR),
+        local_files_only=True,
+        trust_remote_code=True,
+        dtype=dtype,
+    )
     if tokenizer.pad_token_id is None:
         tokenizer.pad_token_id = tokenizer.eos_token_id
 
-    device: str = "cuda" if torch.cuda.is_available() else "cpu"
     model.to(device)
     model.eval()
     return tokenizer, model, device
 
 
 def text_complete(payload: CompletionRequest) -> CompletionResponse:
-    tokenizer, model, device = get_gpt2_runtime()
+    tokenizer, model, device = get_text_completion_runtime()
     import torch
 
     encoded = tokenizer(payload.text, return_tensors="pt")
+    prompt_len: int = encoded["input_ids"].shape[-1]
+    context_length: int = model.config.sequence_len
+    if prompt_len + payload.max_new_tokens > context_length:
+        raise ContextLengthError(
+            f"Prompt and completion must fit within {context_length} tokens "
+            f"(prompt: {prompt_len}, requested completion: {payload.max_new_tokens})."
+        )
     encoded = {key: value.to(device) for key, value in encoded.items()}
 
-    with torch.no_grad():
+    with torch.inference_mode():
         generated = model.generate(
             **encoded,
             max_new_tokens=payload.max_new_tokens,
             do_sample=True,
             top_p=0.95,
             temperature=0.9,
-            pad_token_id=tokenizer.eos_token_id,
+            pad_token_id=tokenizer.pad_token_id,
+            use_cache=False,
         )
 
-    prompt_len: int = encoded["input_ids"].shape[-1]
     completion_ids = generated[0][prompt_len:]
     completion: str = tokenizer.decode(completion_ids, skip_special_tokens=True)
     full_text: str = payload.text + completion
@@ -73,4 +88,3 @@ def text_complete(payload: CompletionRequest) -> CompletionResponse:
         completion=completion,
         full_text=full_text,
     )
-

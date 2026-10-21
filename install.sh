@@ -14,15 +14,17 @@ uv venv
 
 echo "Installing dependencies with uv..."
 PYTHON_BIN=".venv/bin/python"
-CUDA_INDEX_URL="https://download.pytorch.org/whl/cu121"
-BASE_PACKAGES=(fastapi uvicorn huggingface_hub transformers tiktoken)
+CUDA_INDEX_URL="https://download.pytorch.org/whl/cu126"
+BASE_PACKAGES=(fastapi uvicorn huggingface_hub 'transformers>=4.57.3,<5' safetensors tiktoken)
+TORCH_PACKAGE='torch==2.9.1'
+TORCH_CUDA_PACKAGE='torch==2.9.1+cu126'
 
 if command -v nvidia-smi >/dev/null 2>&1 && nvidia-smi -L >/dev/null 2>&1; then
-  echo "NVIDIA GPU detected. Installing CUDA-enabled PyTorch (cu121)..."
-  uv pip install --python "$PYTHON_BIN" --extra-index-url "$CUDA_INDEX_URL" "${BASE_PACKAGES[@]}" torch
+  echo "NVIDIA GPU detected. Installing PyTorch 2.9.1 (cu126)..."
+  uv pip install --python "$PYTHON_BIN" --extra-index-url "$CUDA_INDEX_URL" "${BASE_PACKAGES[@]}" "$TORCH_CUDA_PACKAGE"
 else
   echo "No NVIDIA GPU detected. Installing default PyTorch build..."
-  uv pip install --python "$PYTHON_BIN" "${BASE_PACKAGES[@]}" torch
+  uv pip install --python "$PYTHON_BIN" "${BASE_PACKAGES[@]}" "$TORCH_PACKAGE"
 fi
 
 echo "Activating virtual environment..."

@@ -14,8 +14,10 @@ uv venv
 
 Write-Host "Installing dependencies with uv..."
 $pythonPath = ".venv\Scripts\python.exe"
-$basePackages = @("fastapi", "uvicorn", "huggingface_hub", "transformers", "tiktoken")
-$cudaIndexUrl = "https://download.pytorch.org/whl/cu121"
+$basePackages = @("fastapi", "uvicorn", "huggingface_hub", "transformers>=4.57.3,<5", "safetensors", "tiktoken")
+$torchPackage = "torch==2.9.1"
+$torchCudaPackage = "torch==2.9.1+cu126"
+$cudaIndexUrl = "https://download.pytorch.org/whl/cu126"
 $hasNvidiaGpu = $false
 $nvidiaSmi = Get-Command nvidia-smi -ErrorAction SilentlyContinue
 if ($nvidiaSmi) {
@@ -26,12 +28,12 @@ if ($nvidiaSmi) {
 }
 
 if ($hasNvidiaGpu) {
-    Write-Host "NVIDIA GPU detected. Installing CUDA-enabled PyTorch (cu121)..."
-    uv pip install --python $pythonPath --extra-index-url $cudaIndexUrl @basePackages torch
+    Write-Host "NVIDIA GPU detected. Installing PyTorch 2.9.1 (cu126)..."
+    uv pip install --python $pythonPath --extra-index-url $cudaIndexUrl @basePackages $torchCudaPackage
 }
 else {
     Write-Host "No NVIDIA GPU detected. Installing default PyTorch build..."
-    uv pip install --python $pythonPath @basePackages torch
+    uv pip install --python $pythonPath @basePackages $torchPackage
 }
 
 Write-Host "Activating virtual environment..."

@@ -14,6 +14,7 @@ from backend.chat_complete import chat_complete as run_chat_complete
 from backend.chat_complete import reasoning_chat_complete as run_reasoning_chat_complete
 from backend.text_completion import CompletionRequest
 from backend.text_completion import CompletionResponse
+from backend.text_completion import ContextLengthError
 from backend.text_completion import text_complete as run_text_complete
 from backend.tokenizer import TokenizeRequest
 from backend.tokenizer import TokenizeResponse
@@ -26,7 +27,6 @@ INDEX_FILE: Path = STATIC_DIR / "index.html"
 TEXT_DIR: Path = STATIC_DIR / "text"
 TOKENIZER_DIR: Path = BASE_DIR / "backend" / "tokenizer"
 TOKENIZER_FILE: Path = TOKENIZER_DIR / "tokenizer.pkl"
-MODEL_DIR: Path = BASE_DIR / "backend" / "models" / "openai-community-gpt2"
 SUPPORTED_LANGUAGE_FILES: dict[str, Path] = {
     "en-us": TEXT_DIR / "en-us.json",
     "pt-br": TEXT_DIR / "pt-br.json",
@@ -82,14 +82,17 @@ def tokenize_text(payload: TokenizeRequest) -> TokenizeResponse:
 def text_complete(payload: CompletionRequest) -> CompletionResponse:
     try:
         return run_text_complete(payload)
+    except ContextLengthError as exc:
+        raise HTTPException(status_code=422, detail=str(exc)) from exc
     except FileNotFoundError as exc:
         raise HTTPException(status_code=500, detail=str(exc)) from exc
     except ImportError as exc:
         raise HTTPException(status_code=500, detail=str(exc)) from exc
     except RuntimeError as exc:
+        LOGGER.exception("Text completion failed.")
         raise HTTPException(
             status_code=500,
-            detail="Failed to generate text with GPT-2.",
+            detail="Failed to generate text with ArthurFriedenreich.",
         ) from exc
 
 
@@ -115,4 +118,3 @@ def reasoning_chat_complete(payload: ChatCompleteRequest) -> ChatCompleteRespons
         raise HTTPException(status_code=500, detail=str(exc)) from exc
     except RuntimeError as exc:
         raise HTTPException(status_code=500, detail=str(exc)) from exc
-

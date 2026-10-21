@@ -4,12 +4,23 @@ import subprocess
 import sys
 from pathlib import Path
 
-MODEL_ID: str = "openai-community/gpt2"
-TARGET_DIR: Path = (
-    Path(__file__).resolve().parent / "backend" / "models" / "openai-community-gpt2"
+from backend.model_config import MODEL_DIR
+from backend.model_config import MODEL_ID
+from backend.model_config import MODEL_REVISION
+
+
+TARGET_DIR: Path = MODEL_DIR
+BASE_PACKAGES: tuple[str, ...] = (
+    "fastapi",
+    "uvicorn",
+    "huggingface_hub",
+    "transformers>=4.57.3,<5",
+    "safetensors",
+    "tiktoken",
 )
-BASE_PACKAGES: tuple[str, ...] = ("fastapi", "uvicorn", "huggingface_hub", "transformers", "tiktoken")
-TORCH_CUDA_EXTRA_INDEX_URL: str = "https://download.pytorch.org/whl/cu121"
+TORCH_PACKAGE: str = "torch==2.9.1"
+TORCH_CUDA_PACKAGE: str = "torch==2.9.1+cu126"
+TORCH_CUDA_EXTRA_INDEX_URL: str = "https://download.pytorch.org/whl/cu126"
 
 
 def has_nvidia_gpu() -> bool:
@@ -33,7 +44,7 @@ def install_dependencies() -> None:
     )
 
     if has_nvidia_gpu():
-        print("NVIDIA GPU detected. Installing CUDA-enabled PyTorch (cu121).")
+        print("NVIDIA GPU detected. Installing PyTorch 2.9.1 (cu126).")
         torch_install_cmd: list[str] = [
             sys.executable,
             "-m",
@@ -41,11 +52,11 @@ def install_dependencies() -> None:
             "install",
             "--extra-index-url",
             TORCH_CUDA_EXTRA_INDEX_URL,
-            "torch",
+            TORCH_CUDA_PACKAGE,
         ]
     else:
         print("No NVIDIA GPU detected. Installing default PyTorch build.")
-        torch_install_cmd = [sys.executable, "-m", "pip", "install", "torch"]
+        torch_install_cmd = [sys.executable, "-m", "pip", "install", TORCH_PACKAGE]
 
     subprocess.run(
         torch_install_cmd,
@@ -53,14 +64,14 @@ def install_dependencies() -> None:
     )
 
 
-def install_gpt2() -> None:
+def install_model() -> None:
     from huggingface_hub import snapshot_download
 
     TARGET_DIR.mkdir(parents=True, exist_ok=True)
     snapshot_download(
         repo_id=MODEL_ID,
+        revision=MODEL_REVISION,
         local_dir=str(TARGET_DIR),
-        local_dir_use_symlinks=False,
     )
     print(f"Downloaded {MODEL_ID} to {TARGET_DIR}")
 
@@ -77,7 +88,7 @@ def main() -> None:
     if not args.skip_deps:
         install_dependencies()
 
-    install_gpt2()
+    install_model()
 
 
 if __name__ == "__main__":
