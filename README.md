@@ -53,7 +53,7 @@ secrets.txt                       # local secrets (gitignored)
 
 ## Prerequisites
 
-- Python 3.10+ (recommended)
+- Python 3.12 (selected by the installers; uv downloads it if needed)
 - [uv](https://docs.astral.sh/uv/) installed and available in PATH
 - Local completion model: [marlosb/ArthurFriedenreich](https://huggingface.co/marlosb/ArthurFriedenreich), approximately 2.09B parameters. Allow about 5.74 GB for the downloaded weights. GPU inference uses FP16 (~4.18 GB for weights alone); CPU inference uses FP32 (~8.36 GB for weights alone). Both require additional memory for generation and framework overhead.
 - Azure OpenAI **Chat Completion** model deployment (for `/api/chat-complete`, currently `GPT-5-nano`)
@@ -79,6 +79,11 @@ chmod +x install.sh run.sh
 ```
 
 `install.sh` uses the same GPU detection and PyTorch 2.9.1 / CUDA 12.6 selection.
+
+Both installers explicitly create the virtual environment with Python 3.12,
+regardless of the system Python version, to use a Python ABI supported by the
+pinned PyTorch builds. If uv asks to replace an existing `.venv` created with
+another Python version, confirm replacement.
 
 Both installers download ArthurFriedenreich to `backend/models/ArthurFriedenreich`.
 Existing installations must rerun the installer to download the new model and

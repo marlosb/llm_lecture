@@ -9,8 +9,8 @@ fi
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 cd "$SCRIPT_DIR"
 
-echo "Creating virtual environment with uv..."
-uv venv
+echo "Creating Python 3.12 virtual environment with uv..."
+uv venv --python 3.12
 
 echo "Installing dependencies with uv..."
 PYTHON_BIN=".venv/bin/python"

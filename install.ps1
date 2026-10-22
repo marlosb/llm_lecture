@@ -9,8 +9,11 @@ if (-not (Get-Command uv -ErrorAction SilentlyContinue)) {
 $scriptDir = Split-Path -Parent $MyInvocation.MyCommand.Path
 Set-Location $scriptDir
 
-Write-Host "Creating virtual environment with uv..."
-uv venv
+Write-Host "Creating Python 3.12 virtual environment with uv..."
+uv venv --python 3.12
+if ($LASTEXITCODE -ne 0) {
+    exit $LASTEXITCODE
+}
 
 Write-Host "Installing dependencies with uv..."
 $pythonPath = ".venv\Scripts\python.exe"
