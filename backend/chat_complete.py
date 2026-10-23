@@ -51,7 +51,16 @@ def _resolve_url(
     deployment_error: str,
 ) -> str:
     clean_endpoint: str = endpoint.strip()
-    if "/chat/completions" in clean_endpoint:
+    parsed_endpoint = parse.urlparse(clean_endpoint)
+    path: str = parsed_endpoint.path.rstrip("/")
+    if path == "/openai/v1":
+        return parse.urlunparse(
+            parsed_endpoint._replace(path=f"{path}/responses")
+        )
+    if path in ("/openai/v1/responses", "/openai/v1/chat/completions"):
+        return parse.urlunparse(parsed_endpoint._replace(path=path))
+
+    if path.endswith(("/chat/completions", "/responses")):
         url = clean_endpoint
         parsed = parse.urlparse(url)
         query_pairs = parse.parse_qs(parsed.query)
@@ -90,13 +99,26 @@ def _run_azure_chat_complete(
         deployment_error=missing_deployment_error,
     )
 
-    body: dict[str, object] = {
-        "messages": [
-            {"role": "system", "content": system_message},
-            {"role": "user", "content": payload.text},
-        ]
-    }
-    if "/models/chat/completions" in url:
+    path: str = parse.urlparse(url).path.rstrip("/")
+    uses_responses: bool = path.endswith("/responses")
+    body: dict[str, object]
+    if uses_responses:
+        body = {
+            "instructions": system_message,
+            "input": payload.text,
+        }
+    else:
+        body = {
+            "messages": [
+                {"role": "system", "content": system_message},
+                {"role": "user", "content": payload.text},
+            ]
+        }
+    if (
+        uses_responses
+        or path == "/openai/v1/chat/completions"
+        or "/models/chat/completions" in path
+    ):
         if not model:
             raise ValueError(missing_model_error)
         body["model"] = model
@@ -124,11 +146,24 @@ def _run_azure_chat_complete(
     except error.URLError as exc:
         raise RuntimeError(f"Azure OpenAI connection failed: {exc.reason}") from exc
 
-    choices = response_data.get("choices", [])
-    if not choices:
-        raise RuntimeError("Azure OpenAI response did not include choices.")
-
-    completion: str = choices[0].get("message", {}).get("content", "")
+    completion: str
+    if uses_responses:
+        completion = "".join(
+            part.get("text", "")
+            for item in response_data.get("output", [])
+            if item.get("type") == "message"
+            for part in item.get("content", [])
+            if part.get("type") == "output_text"
+        )
+        if not completion:
+            raise RuntimeError(
+                "Azure OpenAI response did not include output text."
+            )
+    else:
+        choices = response_data.get("choices", [])
+        if not choices:
+            raise RuntimeError("Azure OpenAI response did not include choices.")
+        completion = choices[0].get("message", {}).get("content", "")
     return ChatCompleteResponse(prompt=payload.text, completion=completion)
 
 
@@ -162,7 +197,8 @@ def chat_complete(payload: ChatCompleteRequest) -> ChatCompleteResponse:
             "Missing AZURE_OPENAI_CHAT_DEPLOYMENT in secrets.txt for base endpoint mode."
         ),
         missing_model_error=(
-            "Missing AZURE_OPENAI_CHAT_MODEL in secrets.txt for /models/chat/completions mode."
+            "Missing AZURE_OPENAI_CHAT_MODEL (or AZURE_OPENAI_CHAT_DEPLOYMENT) "
+            "in secrets.txt for model-based endpoints."
         ),
         system_message=(
             "You are a helpful and concise assistant. "
@@ -200,7 +236,7 @@ def reasoning_chat_complete(payload: ChatCompleteRequest) -> ChatCompleteRespons
         ),
         missing_model_error=(
             "Missing AZURE_OPENAI_REASONING_MODEL in secrets.txt for "
-            "/models/chat/completions mode."
+            "model-based endpoints."
         ),
         system_message=(
             "Você é um assistente de raciocínio. Explique sempre passo a passo "

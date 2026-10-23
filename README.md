@@ -166,6 +166,14 @@ AZURE_OPENAI_REASONING_API_VERSION=2024-05-01-preview
 
 > For Azure AI `.../models/chat/completions` endpoints, set `AZURE_OPENAI_REASONING_MODEL` to the exact model/deployment name shown in your Azure AI project.
 
+Azure OpenAI v1 endpoints are also supported. Set the endpoint to
+`https://YOUR-RESOURCE.services.ai.azure.com/openai/v1` or its full
+`/openai/v1/responses` URL. The base v1 URL uses the Responses API, while a full
+`/openai/v1/chat/completions` URL uses Chat Completions. Set the corresponding
+`MODEL` (or `DEPLOYMENT`) to the deployment name, such as `gpt-5-nano`.
+The app uses the configured API key; it does not perform Entra ID authentication.
+No `api-version` parameter is added to v1 URLs.
+
 > Note: `secrets.txt` is intentionally gitignored and meant for local testing only.
 
 ## API Endpoints
