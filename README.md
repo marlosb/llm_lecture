@@ -19,7 +19,7 @@ It is designed for large touch-screen displays in innovation hubs and supports m
 - Tokenizer demo using the selected local model's tokenizer
 - Local text completion demo (ArthurFriedenreich or GPT-2)
 - Chat completion demo (Azure OpenAI GPT-5-nano)
-- Reasoning chat completion demo (Azure AI DeepSeek-R1-0528)
+- Reasoning chat completion demo (Azure AI Phi-4-reasoning)
 - Idle detection (5 minutes) with auto-refresh warning and cancel option
 
 ## Project Structure
@@ -57,7 +57,7 @@ secrets.txt                       # local secrets (gitignored)
 - [uv](https://docs.astral.sh/uv/) installed and available in PATH
 - Local completion model: [marlosb/ArthurFriedenreich](https://huggingface.co/marlosb/ArthurFriedenreich), approximately 2.09B parameters. Allow about 5.74 GB for the downloaded weights. GPU inference uses FP16 (~4.18 GB for weights alone); CPU inference uses FP32 (~8.36 GB for weights alone). Both require additional memory for generation and framework overhead.
 - Azure OpenAI **Chat Completion** model deployment (for `/api/chat-complete`, currently `GPT-5-nano`)
-- Azure AI **Reasoning** model access (for `/api/reasoning-chat-complete`, currently `DeepSeek-R1-0528`)
+- Azure AI **Reasoning** model access (for `/api/reasoning-chat-complete`, currently `Phi-4-reasoning`)
 
 ## Quick Start
 
@@ -156,23 +156,27 @@ AZURE_OPENAI_CHAT_DEPLOYMENT=
 AZURE_OPENAI_CHAT_MODEL=
 AZURE_OPENAI_CHAT_API_VERSION=2025-01-01-preview
 
-# Azure AI reasoning model (DeepSeek-R1-0528)
-AZURE_OPENAI_REASONING_ENDPOINT=
+# Azure AI reasoning model (Phi-4-reasoning)
+AZURE_OPENAI_REASONING_ENDPOINT=https://YOUR-RESOURCE.services.ai.azure.com/openai/v1
 AZURE_OPENAI_REASONING_API_KEY=
-AZURE_OPENAI_REASONING_DEPLOYMENT=
-AZURE_OPENAI_REASONING_MODEL=DeepSeek-R1-0528
-AZURE_OPENAI_REASONING_API_VERSION=2024-05-01-preview
+AZURE_OPENAI_REASONING_DEPLOYMENT=Phi-4-reasoning
+AZURE_OPENAI_REASONING_MODEL=Phi-4-reasoning
+AZURE_OPENAI_REASONING_API_VERSION=
 ```
 
 > For Azure AI `.../models/chat/completions` endpoints, set `AZURE_OPENAI_REASONING_MODEL` to the exact model/deployment name shown in your Azure AI project.
 
 Azure OpenAI v1 endpoints are also supported. Set the endpoint to
 `https://YOUR-RESOURCE.services.ai.azure.com/openai/v1` or its full
-`/openai/v1/responses` URL. The base v1 URL uses the Responses API, while a full
-`/openai/v1/chat/completions` URL uses Chat Completions. Set the corresponding
+`/openai/v1/responses` URL. For the chat demo, a base v1 URL uses the Responses
+API. For the reasoning demo, a base v1 URL uses Chat Completions, matching
+Phi-4-reasoning's connection example. A full `/openai/v1/chat/completions` URL
+also uses Chat Completions. Set the corresponding
 `MODEL` (or `DEPLOYMENT`) to the deployment name, such as `gpt-5-nano`.
 The app uses the configured API key; it does not perform Entra ID authentication.
 No `api-version` parameter is added to v1 URLs.
+The app rereads `secrets.txt` on every request, so saving a new API key does not
+require restarting the server.
 
 > Note: `secrets.txt` is intentionally gitignored and meant for local testing only.
 
@@ -183,7 +187,7 @@ No `api-version` parameter is added to v1 URLs.
 - `POST /api/tokenize` - tokenization demo
 - `POST /api/text-complete` - text completion with the selected local model
 - `POST /api/chat-complete` - Azure chat completion (GPT-5-nano)
-- `POST /api/reasoning-chat-complete` - Azure reasoning chat completion (DeepSeek-R1-0528)
+- `POST /api/reasoning-chat-complete` - Azure reasoning chat completion (Phi-4-reasoning)
 
 ## Development Notes
 

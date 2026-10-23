@@ -163,6 +163,49 @@ class AzureEndpointTests(unittest.TestCase):
                 chat_complete.ChatCompleteRequest(text="Hello")
             )
 
+    def test_phi_reasoning_uses_chat_completions_and_model(self) -> None:
+        cases = (
+            ("/openai/v1", "", "", "Phi-4-reasoning"),
+            ("/openai/v1/", "", "", "Phi-4-reasoning"),
+            (
+                "/openai/v1/chat/completions",
+                "Phi-4-reasoning",
+                "",
+                "Phi-4-reasoning",
+            ),
+            ("/openai/v1", "", "custom-deployment", "custom-deployment"),
+            ("/openai/v1", "custom-model", "other", "custom-model"),
+        )
+        for path, model, deployment, expected_model in cases:
+            with self.subTest(path=path, model=model, deployment=deployment):
+                self.secrets.update(
+                    AZURE_OPENAI_REASONING_ENDPOINT=(
+                        f"https://example.invalid{path}"
+                    ),
+                    AZURE_OPENAI_REASONING_API_KEY="test-only-key",
+                    AZURE_OPENAI_REASONING_MODEL=model,
+                    AZURE_OPENAI_REASONING_DEPLOYMENT=deployment,
+                    AZURE_OPENAI_REASONING_API_VERSION="2024-05-01-preview",
+                )
+
+                result = chat_complete.reasoning_chat_complete(
+                    chat_complete.ChatCompleteRequest(text="Explain this")
+                )
+                req = self.urlopen.call_args.args[0]
+                body = json.loads(req.data)
+
+                self.assertEqual(
+                    req.full_url,
+                    "https://example.invalid/openai/v1/chat/completions",
+                )
+                self.assertEqual(body["model"], expected_model)
+                self.assertEqual(
+                    body["messages"][1],
+                    {"role": "user", "content": "Explain this"},
+                )
+                self.assertNotIn("input", body)
+                self.assertEqual(result.completion, "OK")
+
 
 if __name__ == "__main__":
     unittest.main()

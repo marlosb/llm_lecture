@@ -49,13 +49,17 @@ def _resolve_url(
     deployment: str,
     api_version: str,
     deployment_error: str,
+    prefer_chat_completions: bool = False,
 ) -> str:
     clean_endpoint: str = endpoint.strip()
     parsed_endpoint = parse.urlparse(clean_endpoint)
     path: str = parsed_endpoint.path.rstrip("/")
     if path == "/openai/v1":
+        api_path: str = (
+            "chat/completions" if prefer_chat_completions else "responses"
+        )
         return parse.urlunparse(
-            parsed_endpoint._replace(path=f"{path}/responses")
+            parsed_endpoint._replace(path=f"{path}/{api_path}")
         )
     if path in ("/openai/v1/responses", "/openai/v1/chat/completions"):
         return parse.urlunparse(parsed_endpoint._replace(path=path))
@@ -88,6 +92,7 @@ def _run_azure_chat_complete(
     missing_deployment_error: str,
     missing_model_error: str,
     system_message: str,
+    prefer_chat_completions: bool = False,
 ) -> ChatCompleteResponse:
     if not endpoint or not api_key:
         raise ValueError(missing_secret_error)
@@ -97,6 +102,7 @@ def _run_azure_chat_complete(
         deployment=deployment,
         api_version=api_version,
         deployment_error=missing_deployment_error,
+        prefer_chat_completions=prefer_chat_completions,
     )
 
     path: str = parse.urlparse(url).path.rstrip("/")
@@ -215,7 +221,7 @@ def reasoning_chat_complete(payload: ChatCompleteRequest) -> ChatCompleteRespons
     model: str = (
         secrets.get("AZURE_OPENAI_REASONING_MODEL", "")
         or secrets.get("AZURE_OPENAI_REASONING_DEPLOYMENT", "")
-        or "DeepSeek-R1-0528"
+        or "Phi-4-reasoning"
     )
     api_version: str = secrets.get("AZURE_OPENAI_REASONING_API_VERSION", "") or secrets.get(
         "AZURE_OPENAI_API_VERSION", "2024-10-21"
@@ -243,4 +249,5 @@ def reasoning_chat_complete(payload: ChatCompleteRequest) -> ChatCompleteRespons
             "de forma clara e estruturada. Responda sempre no mesmo idioma da "
             "pergunta do usuário."
         ),
+        prefer_chat_completions=True,
     )
