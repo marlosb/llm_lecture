@@ -16,7 +16,7 @@ It is designed for large touch-screen displays in innovation hubs and supports m
 - Language selection screen (EN / PT / ES)
 - 15-step guided experience with progress bar
 - Step-specific content (text, images, interactivity)
-- Tokenizer demo
+- Tokenizer demo using ArthurFriedenreich's tokenizer
 - Local text completion demo (ArthurFriedenreich)
 - Chat completion demo (Azure OpenAI GPT-5-nano)
 - Reasoning chat completion demo (Azure AI DeepSeek-R1-0528)
@@ -147,6 +147,6 @@ AZURE_OPENAI_REASONING_API_VERSION=2024-05-01-preview
 
 ## Troubleshooting `/api/tokenize` (Step 4)
 
-- If Step 4 shows "Failed to tokenize text.", re-run `install.ps1` (Windows) or `install.sh` (Linux/macOS) to ensure all dependencies are installed, including `tiktoken`.
+- If Step 4 shows "Failed to tokenize text.", re-run `install.ps1` (Windows) or `install.sh` (Linux/macOS) to ensure dependencies and ArthurFriedenreich's tokenizer files are installed. The tokenizer demo uses the same local model directory as text completion, without loading model weights.
 - Check server output for the full exception traceback. The backend now logs tokenizer failures with details.
 - The frontend now shows backend `detail` messages for tokenizer errors, which helps diagnose missing files/dependencies on remote machines.
