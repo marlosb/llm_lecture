@@ -1,0 +1,19 @@
+services:
+  app:
+    image: llm-lecture:cu126
+    build:
+      args:
+        TORCH_PACKAGE: torch==2.9.1+cu126
+        TORCH_INDEX_URL: https://download.pytorch.org/whl/cu126
+    environment:
+      NVIDIA_DRIVER_CAPABILITIES: compute,utility
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu]
+
+  model-download:
+    image: llm-lecture:cu126

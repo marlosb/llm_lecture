@@ -4,11 +4,15 @@
 
 # Keep repository config and workflows
 !.gitignore
+!.dockerignore
 !.github/
 !.github/**
 
 # Local secrets and local model artifacts
 secrets.txt
+secrets
+secrets.*
+!secrets.env.example
 backend/models/
 backend/models/openai-community-gpt2/
 

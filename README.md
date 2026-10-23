@@ -43,18 +43,24 @@ static/
     en-us.json
     es-mx.json
   images/
-install.py                        # Python installer/downloader logic
-install.sh                        # Linux install helper
-install.ps1                       # Windows install helper
-run.sh                            # Linux run helper
-run.ps1                           # Windows run helper
-secrets.txt                       # local secrets (gitignored)
+Dockerfile                        # Python 3.12 application image
+compose.yaml                      # CPU deployment and model download service
+compose.gpu.yaml                  # CUDA 12.6 / NVIDIA override
+requirements.txt                  # shared application dependencies
+install.py                        # model downloader, run inside the container
+install.sh / install.ps1          # build image and download the selected model
+run.sh / run.ps1                  # create container, wait for health, warm model
+docker-common.sh / .ps1           # shared container selection and prerequisites
+docker-firewall.sh                # Linux Docker LAN filtering (administrator setup)
+secrets.env.example               # host environment file template, no real keys
+secrets.txt                       # optional host-only environment file (gitignored)
 ```
 
 ## Prerequisites
 
-- Python 3.12 (selected by the installers; uv downloads it if needed)
-- [uv](https://docs.astral.sh/uv/) installed and available in PATH
+- Docker Engine or Docker Desktop using Linux containers, with Docker Compose 2.24+
+- Permission to access the Docker daemon; Docker group membership grants root-equivalent host access
+- For GPU deployments: an NVIDIA driver and NVIDIA Container Toolkit configured for Docker (or supported Docker Desktop GPU integration)
 - Local completion model: [marlosb/ArthurFriedenreich](https://huggingface.co/marlosb/ArthurFriedenreich), approximately 2.09B parameters. Allow about 5.74 GB for the downloaded weights. GPU inference uses FP16 (~4.18 GB for weights alone); CPU inference uses FP32 (~8.36 GB for weights alone). Both require additional memory for generation and framework overhead.
 - Azure OpenAI **Chat Completion** model deployment (for `/api/chat-complete`, currently `GPT-5-nano`)
 - Azure AI **Reasoning** model access (for `/api/reasoning-chat-complete`, currently `Phi-4-reasoning`)
@@ -64,31 +70,38 @@ secrets.txt                       # local secrets (gitignored)
 ### Windows (PowerShell)
 
 ```powershell
+Copy-Item secrets.env.example secrets.txt
+# Edit secrets.txt on the host and add the Azure endpoints and API keys.
 .\install.ps1
 .\run.ps1
 ```
 
-`install.ps1` auto-detects NVIDIA GPUs (via `nvidia-smi`) and installs PyTorch 2.9.1 with CUDA 12.6 (`cu126`) when available, preserving support for Pascal GPUs such as the GTX 1080. Otherwise, it installs the default PyTorch 2.9.1 build.
-
 ### Linux/macOS (bash)
 
 ```bash
-chmod +x install.sh run.sh
-./install.sh
-./run.sh
+cp secrets.env.example secrets.txt
+chmod 600 secrets.txt
+# Edit secrets.txt on the host and add the Azure endpoints and API keys.
+bash install.sh
+bash run.sh
 ```
 
-`install.sh` uses the same GPU detection and PyTorch 2.9.1 / CUDA 12.6 selection.
+Do not overwrite an existing filled-in secrets file with the example.
+No host Python, virtual environment, or uv installation is needed.
+The installers build the application image and download the selected model into
+the persistent `llm-lecture_models` Docker volume. Existing host model files are
+not copied into the image or automatically imported into that volume.
 
-Both installers explicitly create the virtual environment with Python 3.12,
-regardless of the system Python version, to use a Python ABI supported by the
-pinned PyTorch builds. If uv asks to replace an existing `.venv` created with
-another Python version, confirm replacement.
+Both platforms auto-detect NVIDIA GPUs using `nvidia-smi`. GPU images use
+PyTorch 2.9.1 with CUDA 12.6 (`cu126`), preserving Pascal/GTX 1080 support.
+CPU images use the PyTorch 2.9.1 CPU build. Set `LLM_USE_GPU=1` to require GPU
+containers, `LLM_USE_GPU=0` to use CPU containers, or leave it unset for detection.
+GPU configuration errors fail explicitly; they do not silently switch to CPU.
 
-Both installers download the model selected by `LLM_MODEL_ID` (see below).
-Existing installations must rerun the installer to download the new model and
-update dependencies (PyTorch 2.9.1, Transformers >= 4.57.3 and < 5,
-and Safetensors).
+The run scripts recreate the app container, wait for HTTP health, and warm up
+the selected model before reporting success. The container runs in the
+background with `restart: unless-stopped`; enable the host Docker service for
+startup after reboot. Uvicorn runs without development reload.
 
 The selected model runs locally after installation, loading directly in FP16 on CUDA GPUs
 without changing the downloaded checkpoint. CPU execution remains FP32.
@@ -105,9 +118,9 @@ context limit.
 
 ### Select the local model
 
-Set the OS environment variable `LLM_MODEL_ID` before both installation and
-startup. It is read once per process and does not come from `secrets.txt`.
-Restart the server after changing it.
+Set the host environment variable `LLM_MODEL_ID` before both installation and
+startup. Compose passes it to the downloader and app containers. It does not
+come from `secrets.txt`; rerun the install and run scripts after changing it.
 
 | `LLM_MODEL_ID` | Local model directory |
 |---|---|
@@ -134,19 +147,69 @@ $env:LLM_MODEL_ID = "openai-community/gpt2"
 ```
 
 Use `marlosb/ArthurFriedenreich` instead for an ArthurFriedenreich deployment,
-or leave the variable unset. Configure the same environment variable in the
-service definition when running the app as a managed service.
+or leave the variable unset. Use the same `LLM_USE_GPU` and `LLM_MODEL_ID`
+settings whenever invoking the install or run scripts.
 
 The app will run at:
 
 - `http://127.0.0.1:8000`
 
+### LAN access and the firewall
+
+The default published address is **localhost only**. Docker's published ports
+can bypass UFW's normal input rules, so a UFW allowlist alone is not sufficient.
+For Linux LAN deployments using Docker's iptables backend, first install the
+app-specific filter as an administrator. For example:
+
+```bash
+sudo bash docker-firewall.sh 10.27.53.47 10.27.53.0/24 8000
+export LLM_BIND_ADDRESS=10.27.53.47
+export LLM_PORT=8000
+bash run.sh
+```
+
+Replace the address and subnet with your actual host and trusted clients.
+The script limits only this app's published IPv4 address/port in `DOCKER-USER`,
+preserving unrelated Docker firewall rules. It installs a root-owned systemd
+service and Docker dependency so the filter is restored before Docker starts
+after reboot. It does not restart Docker or change SSH/UFW rules.
+The Linux run script refuses a LAN bind unless that service is active and its
+configured address/port matches. Do not switch Docker to its native nftables
+backend without replacing this filtering setup.
+
+For Windows/macOS LAN publishing, set `LLM_BIND_ADDRESS` explicitly and configure
+the platform's host firewall separately. Use HTTPS and authentication in front
+of the app before allowing untrusted clients.
+
+To stop the app, use Docker Compose with the same GPU files used to start it:
+
+```bash
+# GPU deployment:
+docker compose -p llm-lecture -f compose.yaml -f compose.gpu.yaml stop app
+# CPU deployment:
+docker compose -p llm-lecture -f compose.yaml stop app
+```
+
+Do not use `down --volumes` unless you intend to delete downloaded models.
+
 ## Secrets Configuration
 
-Create (or update) `secrets.txt` in the project root:
+The app reads Azure settings **only from process environment variables**.
+There is no secrets-file loader or file fallback in the Python application.
 
-These Azure settings are read from this file, not OS environment variables.
-Values may be unquoted or enclosed in matching single or double quotes.
+Docker Compose reads a host-only environment file when creating the container
+and injects its values. It does **not** mount that file in the container.
+`secrets.txt` is the default for compatibility; preferably place the filled file
+outside the repository and set `LLM_ENV_FILE` to its absolute path:
+
+```bash
+export LLM_ENV_FILE="$HOME/.config/llm-lecture/secrets.env"
+```
+
+On Windows, use `$env:LLM_ENV_FILE = "$HOME\.config\llm-lecture\secrets.env"`.
+Protect the file with host permissions (`chmod 600` on Linux). Compose supports
+unquoted values and matching single/double quotes. Never source the file as a
+shell script, commit it, or pass keys as image build arguments.
 
 ```text
 # Azure OpenAI chat model (GPT-5-nano)
@@ -175,10 +238,20 @@ also uses Chat Completions. Set the corresponding
 `MODEL` (or `DEPLOYMENT`) to the deployment name, such as `gpt-5-nano`.
 The app uses the configured API key; it does not perform Entra ID authentication.
 No `api-version` parameter is added to v1 URLs.
-The app rereads `secrets.txt` on every request, so saving a new API key does not
-require restarting the server.
+After changing a key or endpoint in the host file, rerun `run.sh` or `run.ps1`.
+They recreate the container with the new environment. Restarting the existing
+container alone does not reload the host environment file.
 
-> Note: `secrets.txt` is intentionally gitignored and meant for local testing only.
+The model downloader does not receive the Azure environment file. The build
+context is allowlisted in `.dockerignore`, excluding secrets, host environments,
+Git metadata, and model weights. Runtime containers use a non-root user, a
+read-only root filesystem and model mount, dropped capabilities, no-new-privileges,
+and a writable temporary cache. Logs are rotated.
+
+Environment variables remain visible to Docker/host administrators and a
+compromised process can read its own credentials. Use workload identity/a secrets
+manager for stronger credential isolation. Containerization does not add API
+authentication, rate limiting, or HTTPS.
 
 ## API Endpoints
 

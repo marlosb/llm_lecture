@@ -24,7 +24,8 @@ class TokenizeResponse(BaseModel):
 def get_tokenizer_encoding() -> Any:
     if not MODEL_DIR.exists():
         raise FileNotFoundError(
-            f"Model directory not found: {MODEL_DIR}. Run install.py first."
+            f"Model directory not found: {MODEL_DIR}. "
+            "Run install.sh or install.ps1 first."
         )
     from transformers import AutoTokenizer
 

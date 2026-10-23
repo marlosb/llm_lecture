@@ -1,13 +1,11 @@
 import json
-from pathlib import Path
+import os
+from collections.abc import Mapping
 from urllib import error
 from urllib import parse
 from urllib import request
 
 from pydantic import BaseModel
-
-
-SECRETS_FILE: Path = Path(__file__).resolve().parent.parent / "secrets.txt"
 
 
 class ChatCompleteRequest(BaseModel):
@@ -17,31 +15,6 @@ class ChatCompleteRequest(BaseModel):
 class ChatCompleteResponse(BaseModel):
     prompt: str
     completion: str
-
-
-def _load_secrets() -> dict[str, str]:
-    if not SECRETS_FILE.exists():
-        raise FileNotFoundError(
-            f"Secrets file not found: {SECRETS_FILE}. Create it with Azure OpenAI values."
-        )
-
-    values: dict[str, str] = {}
-    for raw_line in SECRETS_FILE.read_text(encoding="utf-8").splitlines():
-        line: str = raw_line.strip()
-        if not line or line.startswith("#"):
-            continue
-        if "=" not in line:
-            continue
-        key, value = line.split("=", 1)
-        value = value.strip()
-        if (
-            len(value) >= 2
-            and value[0] == value[-1]
-            and value[0] in ("'", '"')
-        ):
-            value = value[1:-1]
-        values[key.strip()] = value
-    return values
 
 
 def _resolve_url(
@@ -174,19 +147,19 @@ def _run_azure_chat_complete(
 
 
 def chat_complete(payload: ChatCompleteRequest) -> ChatCompleteResponse:
-    secrets: dict[str, str] = _load_secrets()
-    endpoint: str = secrets.get("AZURE_OPENAI_CHAT_ENDPOINT", "") or secrets.get(
+    settings: Mapping[str, str] = os.environ
+    endpoint: str = settings.get("AZURE_OPENAI_CHAT_ENDPOINT", "") or settings.get(
         "AZURE_OPENAI_ENDPOINT", ""
     )
-    api_key: str = secrets.get("AZURE_OPENAI_CHAT_API_KEY", "") or secrets.get(
+    api_key: str = settings.get("AZURE_OPENAI_CHAT_API_KEY", "") or settings.get(
         "AZURE_OPENAI_API_KEY", ""
     )
-    deployment: str = secrets.get("AZURE_OPENAI_CHAT_DEPLOYMENT", "")
-    model: str = secrets.get("AZURE_OPENAI_CHAT_MODEL", "") or secrets.get(
+    deployment: str = settings.get("AZURE_OPENAI_CHAT_DEPLOYMENT", "")
+    model: str = settings.get("AZURE_OPENAI_CHAT_MODEL", "") or settings.get(
         "AZURE_OPENAI_CHAT_DEPLOYMENT", ""
     )
-    api_version: str = secrets.get("AZURE_OPENAI_CHAT_API_VERSION", "") or secrets.get(
-        "AZURE_OPENAI_API_VERSION", "2024-10-21"
+    api_version: str = settings.get("AZURE_OPENAI_CHAT_API_VERSION", "") or (
+        settings.get("AZURE_OPENAI_API_VERSION", "2024-10-21")
     )
     return _run_azure_chat_complete(
         payload=payload,
@@ -197,14 +170,15 @@ def chat_complete(payload: ChatCompleteRequest) -> ChatCompleteResponse:
         api_version=api_version,
         missing_secret_error=(
             "Missing AZURE_OPENAI_CHAT_ENDPOINT and/or AZURE_OPENAI_CHAT_API_KEY "
-            "in secrets.txt."
+            "in the environment."
         ),
         missing_deployment_error=(
-            "Missing AZURE_OPENAI_CHAT_DEPLOYMENT in secrets.txt for base endpoint mode."
+            "Missing AZURE_OPENAI_CHAT_DEPLOYMENT in the environment "
+            "for base endpoint mode."
         ),
         missing_model_error=(
             "Missing AZURE_OPENAI_CHAT_MODEL (or AZURE_OPENAI_CHAT_DEPLOYMENT) "
-            "in secrets.txt for model-based endpoints."
+            "in the environment for model-based endpoints."
         ),
         system_message=(
             "You are a helpful and concise assistant. "
@@ -214,17 +188,17 @@ def chat_complete(payload: ChatCompleteRequest) -> ChatCompleteResponse:
 
 
 def reasoning_chat_complete(payload: ChatCompleteRequest) -> ChatCompleteResponse:
-    secrets: dict[str, str] = _load_secrets()
-    endpoint: str = secrets.get("AZURE_OPENAI_REASONING_ENDPOINT", "")
-    api_key: str = secrets.get("AZURE_OPENAI_REASONING_API_KEY", "")
-    deployment: str = secrets.get("AZURE_OPENAI_REASONING_DEPLOYMENT", "")
+    settings: Mapping[str, str] = os.environ
+    endpoint: str = settings.get("AZURE_OPENAI_REASONING_ENDPOINT", "")
+    api_key: str = settings.get("AZURE_OPENAI_REASONING_API_KEY", "")
+    deployment: str = settings.get("AZURE_OPENAI_REASONING_DEPLOYMENT", "")
     model: str = (
-        secrets.get("AZURE_OPENAI_REASONING_MODEL", "")
-        or secrets.get("AZURE_OPENAI_REASONING_DEPLOYMENT", "")
+        settings.get("AZURE_OPENAI_REASONING_MODEL", "")
+        or settings.get("AZURE_OPENAI_REASONING_DEPLOYMENT", "")
         or "Phi-4-reasoning"
     )
-    api_version: str = secrets.get("AZURE_OPENAI_REASONING_API_VERSION", "") or secrets.get(
-        "AZURE_OPENAI_API_VERSION", "2024-10-21"
+    api_version: str = settings.get("AZURE_OPENAI_REASONING_API_VERSION", "") or (
+        settings.get("AZURE_OPENAI_API_VERSION", "2024-10-21")
     )
     return _run_azure_chat_complete(
         payload=payload,
@@ -235,13 +209,14 @@ def reasoning_chat_complete(payload: ChatCompleteRequest) -> ChatCompleteRespons
         api_version=api_version,
         missing_secret_error=(
             "Missing AZURE_OPENAI_REASONING_ENDPOINT and/or "
-            "AZURE_OPENAI_REASONING_API_KEY in secrets.txt."
+            "AZURE_OPENAI_REASONING_API_KEY in the environment."
         ),
         missing_deployment_error=(
-            "Missing AZURE_OPENAI_REASONING_DEPLOYMENT in secrets.txt for base endpoint mode."
+            "Missing AZURE_OPENAI_REASONING_DEPLOYMENT in the environment "
+            "for base endpoint mode."
         ),
         missing_model_error=(
-            "Missing AZURE_OPENAI_REASONING_MODEL in secrets.txt for "
+            "Missing AZURE_OPENAI_REASONING_MODEL in the environment for "
             "model-based endpoints."
         ),
         system_message=(

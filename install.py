@@ -10,13 +10,12 @@ from backend.model_config import MODEL_REVISION
 
 
 TARGET_DIR: Path = MODEL_DIR
-BASE_PACKAGES: tuple[str, ...] = (
-    "fastapi",
-    "uvicorn",
-    "huggingface_hub",
-    "transformers>=4.57.3,<5",
-    "safetensors",
-    "tiktoken",
+BASE_PACKAGES: tuple[str, ...] = tuple(
+    line.strip()
+    for line in Path(__file__).with_name("requirements.txt").read_text(
+        encoding="utf-8"
+    ).splitlines()
+    if line.strip() and not line.lstrip().startswith("#")
 )
 TORCH_PACKAGE: str = "torch==2.9.1"
 TORCH_CUDA_PACKAGE: str = "torch==2.9.1+cu126"

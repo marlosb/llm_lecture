@@ -1,54 +1,66 @@
 import json
-import tempfile
+import os
 import unittest
-from pathlib import Path
 from unittest.mock import Mock
 from unittest.mock import patch
 
 from backend import chat_complete
 
 
-class SecretsParsingTests(unittest.TestCase):
-    def test_accepts_quoted_and_unquoted_configuration_values(self) -> None:
-        cases = (
-            ("https://example.invalid/", "https://example.invalid/"),
-            ('"https://example.invalid/"', "https://example.invalid/"),
-            ("'https://example.invalid/'", "https://example.invalid/"),
-            ('"value=with=equals"', "value=with=equals"),
-            ("", ""),
-            ('""', ""),
-            ('"unmatched', '"unmatched'),
+class EnvironmentSettingsTests(unittest.TestCase):
+    def test_uses_environment_without_reading_configuration_files(self) -> None:
+        settings = {
+            "AZURE_OPENAI_CHAT_ENDPOINT": "https://example.invalid/openai/v1",
+            "AZURE_OPENAI_CHAT_API_KEY": "test-only-environment-key",
+            "AZURE_OPENAI_CHAT_MODEL": "test-model",
+        }
+        expected = chat_complete.ChatCompleteResponse(
+            prompt="Hello", completion="OK"
         )
-        with tempfile.TemporaryDirectory() as directory:
-            secrets_file = Path(directory) / "secrets.txt"
-            for raw_value, expected in cases:
-                with (
-                    self.subTest(raw_value=raw_value),
-                    patch.object(chat_complete, "SECRETS_FILE", secrets_file),
-                ):
-                    secrets_file.write_text(
-                        f"# Comment\n\n SETTING = {raw_value} \n",
-                        encoding="utf-8",
-                    )
-                    self.assertEqual(
-                        chat_complete._load_secrets(), {"SETTING": expected}
-                    )
+        with (
+            patch.dict(os.environ, settings, clear=True),
+            patch.object(
+                chat_complete, "_run_azure_chat_complete", return_value=expected
+            ) as run,
+            patch("pathlib.Path.read_text", side_effect=AssertionError),
+            patch("builtins.open", side_effect=AssertionError),
+        ):
+            result = chat_complete.chat_complete(
+                chat_complete.ChatCompleteRequest(text="Hello")
+            )
+
+        self.assertEqual(result, expected)
+        self.assertEqual(
+            run.call_args.kwargs["api_key"],
+            settings["AZURE_OPENAI_CHAT_API_KEY"],
+        )
+        self.assertEqual(
+            run.call_args.kwargs["endpoint"],
+            settings["AZURE_OPENAI_CHAT_ENDPOINT"],
+        )
+
+    def test_missing_environment_credentials_fail_explicitly(self) -> None:
+        with (
+            patch.dict(os.environ, {}, clear=True),
+            self.assertRaisesRegex(ValueError, "in the environment"),
+        ):
+            chat_complete.chat_complete(
+                chat_complete.ChatCompleteRequest(text="Hello")
+            )
 
 
 class AzureEndpointTests(unittest.TestCase):
     def setUp(self) -> None:
-        self.secrets = {
+        settings = {
             "AZURE_OPENAI_CHAT_ENDPOINT": "",
             "AZURE_OPENAI_CHAT_API_KEY": "test-only-key",
             "AZURE_OPENAI_CHAT_MODEL": "test-model",
             "AZURE_OPENAI_CHAT_DEPLOYMENT": "test-deployment",
             "AZURE_OPENAI_CHAT_API_VERSION": "2025-01-01-preview",
         }
-        secrets_patch = patch.object(
-            chat_complete, "_load_secrets", return_value=self.secrets
-        )
-        secrets_patch.start()
-        self.addCleanup(secrets_patch.stop)
+        environment_patch = patch.dict(os.environ, settings, clear=True)
+        self.settings = environment_patch.start()
+        self.addCleanup(environment_patch.stop)
         open_patch = patch.object(chat_complete.request, "urlopen")
         self.urlopen = open_patch.start()
         self.addCleanup(open_patch.stop)
@@ -80,7 +92,7 @@ class AzureEndpointTests(unittest.TestCase):
             "/openai/v1/responses/",
         ):
             with self.subTest(path=path):
-                self.secrets["AZURE_OPENAI_CHAT_ENDPOINT"] = (
+                self.settings["AZURE_OPENAI_CHAT_ENDPOINT"] = (
                     f"https://example.invalid{path}"
                 )
                 result = chat_complete.chat_complete(
@@ -120,7 +132,7 @@ class AzureEndpointTests(unittest.TestCase):
         )
         for path, expected_path, needs_model in cases:
             with self.subTest(path=path):
-                self.secrets["AZURE_OPENAI_CHAT_ENDPOINT"] = (
+                self.settings["AZURE_OPENAI_CHAT_ENDPOINT"] = (
                     f"https://example.invalid{path}"
                 )
                 result = chat_complete.chat_complete(
@@ -139,7 +151,7 @@ class AzureEndpointTests(unittest.TestCase):
                 self.assertEqual(result.completion, "OK")
 
     def test_v1_requires_model_or_deployment_before_sending(self) -> None:
-        self.secrets.update(
+        self.settings.update(
             AZURE_OPENAI_CHAT_ENDPOINT="https://example.invalid/openai/v1",
             AZURE_OPENAI_CHAT_MODEL="",
             AZURE_OPENAI_CHAT_DEPLOYMENT="",
@@ -153,7 +165,7 @@ class AzureEndpointTests(unittest.TestCase):
         self.urlopen.assert_not_called()
 
     def test_responses_without_output_text_reports_failure(self) -> None:
-        self.secrets["AZURE_OPENAI_CHAT_ENDPOINT"] = (
+        self.settings["AZURE_OPENAI_CHAT_ENDPOINT"] = (
             "https://example.invalid/openai/v1/responses"
         )
         self.response.read.return_value = b'{"output": []}'
@@ -178,7 +190,7 @@ class AzureEndpointTests(unittest.TestCase):
         )
         for path, model, deployment, expected_model in cases:
             with self.subTest(path=path, model=model, deployment=deployment):
-                self.secrets.update(
+                self.settings.update(
                     AZURE_OPENAI_REASONING_ENDPOINT=(
                         f"https://example.invalid{path}"
                     ),

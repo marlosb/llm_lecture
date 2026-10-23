@@ -3,30 +3,24 @@ set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 cd "$SCRIPT_DIR"
+source "$SCRIPT_DIR/docker-common.sh"
 
-if [[ ! -d ".venv" ]]; then
-  echo "Error: .venv not found. Run install.sh first."
+if [[ ! -f "${LLM_ENV_FILE:-secrets.txt}" ]]; then
+  echo "Error: host environment file not found. Copy secrets.env.example and set LLM_ENV_FILE."
   exit 1
 fi
 
-if [[ "${VIRTUAL_ENV:-}" != "$SCRIPT_DIR/.venv" ]]; then
-  echo "Activating virtual environment..."
-  # shellcheck disable=SC1091
-  source ".venv/bin/activate"
+if [[ "$LLM_BIND_ADDRESS" != 127.0.0.1 && "$(uname -s)" == Linux ]]; then
+  if ! systemctl is-active --quiet llm-lecture-firewall.service \
+    || ! grep -Fxq "HOST_IP=$LLM_BIND_ADDRESS" /etc/llm-lecture-firewall.conf \
+    || ! grep -Fxq "PORT=$LLM_PORT" /etc/llm-lecture-firewall.conf; then
+    echo "Error: configure the Docker firewall before enabling LAN access."
+    echo "Run sudo bash docker-firewall.sh HOST_IP TRUSTED_SUBNET PORT."
+    exit 1
+  fi
 fi
 
-echo "Starting server at http://0.0.0.0:8000"
-(
-  for attempt in {1..60}; do
-    if curl -sS -X POST "http://127.0.0.1:8000/api/text-complete" \
-      -H "Content-Type: application/json" \
-      -d '{"text":"Warmup","max_new_tokens":1}' >/dev/null; then
-      echo "Model warm-up request completed."
-      exit 0
-    fi
-    sleep 1
-  done
-  echo "Warning: model warm-up request did not complete in time."
-) &
-
-python -m uvicorn backend.main:app --reload --host 0.0.0.0 --port 8000
+echo "Starting application container..."
+"${COMPOSE[@]}" up --detach --no-build --pull never --force-recreate --wait --wait-timeout 180 app
+"${COMPOSE[@]}" exec -T app python -m backend.warmup
+echo "Application ready at http://${LLM_BIND_ADDRESS:-127.0.0.1}:${LLM_PORT:-8000}"

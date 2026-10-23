@@ -1,0 +1,7 @@
+**
+!requirements.txt
+!install.py
+!backend/
+!backend/*.py
+!static/
+!static/**

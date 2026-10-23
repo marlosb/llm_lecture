@@ -28,7 +28,8 @@ class CompletionResponse(BaseModel):
 def get_text_completion_runtime() -> tuple[Any, Any, str]:
     if not MODEL_DIR.exists():
         raise FileNotFoundError(
-            f"Model directory not found: {MODEL_DIR}. Run install.py first."
+            f"Model directory not found: {MODEL_DIR}. "
+            "Run install.sh or install.ps1 first."
         )
 
     try:
@@ -37,7 +38,8 @@ def get_text_completion_runtime() -> tuple[Any, Any, str]:
         from transformers import AutoTokenizer
     except ImportError as exc:
         raise ImportError(
-            "Missing dependencies. Run install.py to install required packages."
+            "Missing dependencies. Rebuild the image with "
+            "install.sh or install.ps1."
         ) from exc
 
     device: str = "cuda" if torch.cuda.is_available() else "cpu"

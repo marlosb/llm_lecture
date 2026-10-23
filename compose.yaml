@@ -1,0 +1,58 @@
+x-container: &container
+  image: llm-lecture:cpu
+  init: true
+  user: "10001:10001"
+  read_only: true
+  cap_drop:
+    - ALL
+  security_opt:
+    - no-new-privileges:true
+  pids_limit: 512
+  tmpfs:
+    - /tmp:rw,nosuid,nodev,size=512m,mode=1777
+
+services:
+  app:
+    <<: *container
+    build:
+      context: .
+    restart: unless-stopped
+    env_file:
+      - path: ${LLM_ENV_FILE:-./secrets.txt}
+        required: false
+    environment:
+      LLM_MODEL_ID: ${LLM_MODEL_ID-marlosb/ArthurFriedenreich}
+      HF_HUB_OFFLINE: "1"
+      TRANSFORMERS_OFFLINE: "1"
+    ports:
+      - "${LLM_BIND_ADDRESS:-127.0.0.1}:${LLM_PORT:-8000}:8000"
+    volumes:
+      - models:/app/backend/models:ro
+    healthcheck:
+      test:
+        - CMD
+        - python
+        - -c
+        - "from urllib.request import urlopen; urlopen('http://127.0.0.1:8000/', timeout=3).close()"
+      interval: 10s
+      timeout: 5s
+      start_period: 10s
+      retries: 6
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  model-download:
+    <<: *container
+    profiles:
+      - install
+    environment:
+      LLM_MODEL_ID: ${LLM_MODEL_ID-marlosb/ArthurFriedenreich}
+    volumes:
+      - models:/app/backend/models
+    command: ["python", "install.py", "--skip-deps"]
+
+volumes:
+  models:

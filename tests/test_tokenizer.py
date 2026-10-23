@@ -50,7 +50,9 @@ class TokenizerTests(unittest.TestCase):
         self.addCleanup(tokenizer.get_tokenizer_encoding.cache_clear)
         with patch.object(tokenizer, "MODEL_DIR") as model_dir:
             model_dir.exists.return_value = False
-            with self.assertRaisesRegex(FileNotFoundError, "Run install.py first"):
+            with self.assertRaisesRegex(
+                FileNotFoundError, r"Run install\.sh or install\.ps1"
+            ):
                 tokenizer.get_tokenizer_encoding()
 
 
