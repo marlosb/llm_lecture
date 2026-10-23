@@ -3,7 +3,7 @@ FROM python:3.12-slim-bookworm
 COPY --from=ghcr.io/astral-sh/uv:0.12.10 /uv /usr/local/bin/uv
 
 ARG TORCH_PACKAGE=torch==2.9.1
-ARG TORCH_INDEX_URL=https://download.pytorch.org/whl/cpu
+ARG TORCH_BACKEND=cpu
 
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
@@ -18,8 +18,9 @@ RUN apt-get update \
 
 WORKDIR /app
 COPY requirements.txt .
-RUN uv pip install --system --no-cache --index-url "$TORCH_INDEX_URL" "$TORCH_PACKAGE" \
-    && uv pip install --system --no-cache --requirement requirements.txt
+RUN --mount=type=cache,target=/root/.cache/uv \
+    uv pip install --system --torch-backend "$TORCH_BACKEND" \
+    "$TORCH_PACKAGE" --requirement requirements.txt
 
 COPY install.py .
 COPY backend/ backend/

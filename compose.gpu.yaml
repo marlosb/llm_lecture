@@ -4,7 +4,7 @@ services:
     build:
       args:
         TORCH_PACKAGE: torch==2.9.1+cu126
-        TORCH_INDEX_URL: https://download.pytorch.org/whl/cu126
+        TORCH_BACKEND: cu126
     environment:
       NVIDIA_DRIVER_CAPABILITIES: compute,utility
     deploy:
