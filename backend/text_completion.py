@@ -4,7 +4,9 @@ from typing import Any
 from pydantic import BaseModel
 from pydantic import Field
 
+from backend.model_config import CONTEXT_LENGTH_ATTRIBUTE
 from backend.model_config import MODEL_DIR
+from backend.model_config import MODEL_ID
 
 
 class ContextLengthError(ValueError):
@@ -44,7 +46,7 @@ def get_text_completion_runtime() -> tuple[Any, Any, str]:
     model = AutoModelForCausalLM.from_pretrained(
         str(MODEL_DIR),
         local_files_only=True,
-        trust_remote_code=True,
+        trust_remote_code=MODEL_ID == "marlosb/ArthurFriedenreich",
         dtype=dtype,
     )
     if tokenizer.pad_token_id is None:
@@ -61,7 +63,7 @@ def text_complete(payload: CompletionRequest) -> CompletionResponse:
 
     encoded = tokenizer(payload.text, return_tensors="pt")
     prompt_len: int = encoded["input_ids"].shape[-1]
-    context_length: int = model.config.sequence_len
+    context_length: int = getattr(model.config, CONTEXT_LENGTH_ATTRIBUTE)
     if prompt_len + payload.max_new_tokens > context_length:
         raise ContextLengthError(
             f"Prompt and completion must fit within {context_length} tokens "
@@ -77,7 +79,7 @@ def text_complete(payload: CompletionRequest) -> CompletionResponse:
             top_p=0.95,
             temperature=0.9,
             pad_token_id=tokenizer.pad_token_id,
-            use_cache=False,
+            use_cache=MODEL_ID == "openai-community/gpt2",
         )
 
     completion_ids = generated[0][prompt_len:]

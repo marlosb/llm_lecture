@@ -12,6 +12,7 @@ from backend.chat_complete import ChatCompleteRequest
 from backend.chat_complete import ChatCompleteResponse
 from backend.chat_complete import chat_complete as run_chat_complete
 from backend.chat_complete import reasoning_chat_complete as run_reasoning_chat_complete
+from backend.model_config import MODEL_ID
 from backend.text_completion import CompletionRequest
 from backend.text_completion import CompletionResponse
 from backend.text_completion import ContextLengthError
@@ -25,8 +26,6 @@ BASE_DIR: Path = Path(__file__).resolve().parent.parent
 STATIC_DIR: Path = BASE_DIR / "static"
 INDEX_FILE: Path = STATIC_DIR / "index.html"
 TEXT_DIR: Path = STATIC_DIR / "text"
-TOKENIZER_DIR: Path = BASE_DIR / "backend" / "tokenizer"
-TOKENIZER_FILE: Path = TOKENIZER_DIR / "tokenizer.pkl"
 SUPPORTED_LANGUAGE_FILES: dict[str, Path] = {
     "en-us": TEXT_DIR / "en-us.json",
     "pt-br": TEXT_DIR / "pt-br.json",
@@ -92,7 +91,7 @@ def text_complete(payload: CompletionRequest) -> CompletionResponse:
         LOGGER.exception("Text completion failed.")
         raise HTTPException(
             status_code=500,
-            detail="Failed to generate text with ArthurFriedenreich.",
+            detail=f"Failed to generate text with {MODEL_ID}.",
         ) from exc
 
 

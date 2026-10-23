@@ -7,12 +7,14 @@ from backend import tokenizer
 
 
 class TokenizerTests(unittest.TestCase):
-    def test_tokenizes_without_special_tokens_and_preserves_token_spacing(self) -> None:
+    def test_tokenizes_without_special_tokens_and_preserves_spacing(self) -> None:
         encoding = Mock()
         encoding.encode.return_value = [42, 81]
         encoding.decode.side_effect = ["O", " Brasil"]
         with patch.object(tokenizer, "get_tokenizer_encoding", return_value=encoding):
-            result = tokenizer.tokenize_text(tokenizer.TokenizeRequest(text="O Brasil"))
+            result = tokenizer.tokenize_text(
+                tokenizer.TokenizeRequest(text="O Brasil")
+            )
 
         encoding.encode.assert_called_once_with("O Brasil", add_special_tokens=False)
         self.assertEqual(
@@ -26,7 +28,7 @@ class TokenizerTests(unittest.TestCase):
         self.assertEqual([token.text for token in result.tokens], ["O", " Brasil"])
         self.assertEqual([token.id for token in result.tokens], [42, 81])
 
-    def test_loads_and_caches_tokenizer_from_completion_model_directory(self) -> None:
+    def test_loads_and_caches_tokenizer_from_completion_model(self) -> None:
         tokenizer.get_tokenizer_encoding.cache_clear()
         self.addCleanup(tokenizer.get_tokenizer_encoding.cache_clear)
         with (
