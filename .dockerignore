@@ -2,6 +2,14 @@
 !requirements.txt
 !install.py
 !backend/
+backend/**
 !backend/*.py
 !static/
 !static/**
+backend/models/
+backend/tokenizer/
+**/__pycache__/
+**/.*
+**/secrets*
+**/*.pem
+**/*.key
