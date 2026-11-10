@@ -20,7 +20,7 @@ if (-not $env:LLM_ENV_FILE) {
     $env:LLM_ENV_FILE = Join-Path $PSScriptRoot "secrets.txt"
 }
 if (-not $env:LLM_BIND_ADDRESS) {
-    $env:LLM_BIND_ADDRESS = "127.0.0.1"
+    $env:LLM_BIND_ADDRESS = "0.0.0.0"
 }
 if (-not $env:LLM_PORT) {
     $env:LLM_PORT = "8000"

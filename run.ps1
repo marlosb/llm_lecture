@@ -17,6 +17,6 @@ Invoke-DockerCompose -Arguments @(
 Invoke-DockerCompose -Arguments @(
     "exec", "-T", "app", "python", "-m", "backend.warmup"
 )
-$bindAddress = if ($env:LLM_BIND_ADDRESS) { $env:LLM_BIND_ADDRESS } else { "127.0.0.1" }
+$bindAddress = if ($env:LLM_BIND_ADDRESS) { $env:LLM_BIND_ADDRESS } else { "0.0.0.0" }
 $port = if ($env:LLM_PORT) { $env:LLM_PORT } else { "8000" }
 Write-Host "Application ready at http://${bindAddress}:$port"

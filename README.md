@@ -152,14 +152,25 @@ settings whenever invoking the install or run scripts.
 
 The app will run at:
 
-- `http://127.0.0.1:8000`
+- `http://localhost:8000` on the host
+- `http://<host-lab-IP>:8000` from other lab machines
 
 ### LAN access and the firewall
 
-The default published address is **localhost only**. Docker's published ports
-can bypass UFW's normal input rules, so a UFW allowlist alone is not sufficient.
-For Linux LAN deployments using Docker's iptables backend, first install the
-app-specific filter as an administrator. For example:
+Both run scripts publish port 8000 on **all IPv4 interfaces** (`0.0.0.0`) by
+default for the controlled lab. `0.0.0.0` is a bind address, not the address
+clients should browse to; use the host's lab IP instead. Allow inbound TCP
+traffic on `LLM_PORT` (default `8000`) in the host/network firewall as needed.
+Existing `LLM_BIND_ADDRESS` and `LLM_PORT` environment variables override these
+defaults. For localhost-only access, set `LLM_BIND_ADDRESS=127.0.0.1` in bash
+or `$env:LLM_BIND_ADDRESS = "127.0.0.1"` in PowerShell before starting.
+
+The Linux run script does not require the optional Docker firewall service.
+Docker's published ports can bypass UFW's normal input rules, so a UFW
+allowlist alone is not sufficient. To restrict Linux LAN deployments using
+Docker's iptables backend to a trusted subnet, optionally install the
+app-specific filter as an administrator and bind to the same specific host
+address (the helper does not support `0.0.0.0`). For example:
 
 ```bash
 sudo bash docker-firewall.sh 10.27.53.47 10.27.53.0/24 8000
@@ -173,13 +184,13 @@ The script limits only this app's published IPv4 address/port in `DOCKER-USER`,
 preserving unrelated Docker firewall rules. It installs a root-owned systemd
 service and Docker dependency so the filter is restored before Docker starts
 after reboot. It does not restart Docker or change SSH/UFW rules.
-The Linux run script refuses a LAN bind unless that service is active and its
-configured address/port matches. Do not switch Docker to its native nftables
-backend without replacing this filtering setup.
+When using this filter, keep `LLM_BIND_ADDRESS` and `LLM_PORT` matched to its
+configured address/port. Do not switch Docker to its native nftables backend
+without replacing this filtering setup.
 
-For Windows/macOS LAN publishing, set `LLM_BIND_ADDRESS` explicitly and configure
-the platform's host firewall separately. Use HTTPS and authentication in front
-of the app before allowing untrusted clients.
+For Windows/macOS LAN publishing, configure the platform's host firewall
+separately. Use HTTPS and authentication in front of the app before allowing
+untrusted clients.
 
 To stop the app, use Docker Compose with the same GPU files used to start it:
 

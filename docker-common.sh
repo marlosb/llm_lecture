@@ -9,7 +9,7 @@ docker info >/dev/null
 
 export LLM_MODEL_ID="${LLM_MODEL_ID-marlosb/ArthurFriedenreich}"
 export LLM_ENV_FILE="${LLM_ENV_FILE:-$SCRIPT_DIR/secrets.txt}"
-export LLM_BIND_ADDRESS="${LLM_BIND_ADDRESS:-127.0.0.1}"
+export LLM_BIND_ADDRESS="${LLM_BIND_ADDRESS:-0.0.0.0}"
 export LLM_PORT="${LLM_PORT:-8000}"
 
 COMPOSE=(docker compose --project-name llm-lecture --file "$SCRIPT_DIR/compose.yaml")
