@@ -50,6 +50,7 @@ requirements.txt                  # shared application dependencies
 install.py                        # model downloader, run inside the container
 install.sh / install.ps1          # build image and download the selected model
 run.sh / run.ps1                  # create container, wait for health, warm model
+stop.sh / stop.ps1                # stop the app without deleting models
 docker-common.sh / .ps1           # shared container selection and prerequisites
 docker-firewall.sh                # Linux Docker LAN filtering (administrator setup)
 secrets.env.example               # host environment file template, no real keys
@@ -192,14 +193,19 @@ For Windows/macOS LAN publishing, configure the platform's host firewall
 separately. Use HTTPS and authentication in front of the app before allowing
 untrusted clients.
 
-To stop the app, use Docker Compose with the same GPU files used to start it:
+To stop the app, use the stop script for your platform with the same
+`LLM_USE_GPU` setting used to start it:
 
 ```bash
-# GPU deployment:
-docker compose -p llm-lecture -f compose.yaml -f compose.gpu.yaml stop app
-# CPU deployment:
-docker compose -p llm-lecture -f compose.yaml stop app
+bash stop.sh
 ```
+
+```powershell
+.\stop.ps1
+```
+
+The stop scripts stop only the app container and preserve downloaded models.
+Use the run script again to restart the app.
 
 Do not use `down --volumes` unless you intend to delete downloaded models.
 
