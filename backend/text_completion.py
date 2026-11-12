@@ -15,7 +15,7 @@ class ContextLengthError(ValueError):
 
 class CompletionRequest(BaseModel):
     text: str
-    max_new_tokens: int = Field(default=60, ge=1, le=200)
+    max_new_tokens: int = Field(default=60, ge=1, le=2000)
 
 
 class CompletionResponse(BaseModel):

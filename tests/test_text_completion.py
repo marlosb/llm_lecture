@@ -4,6 +4,7 @@ from unittest.mock import patch
 
 import torch
 from fastapi import HTTPException
+from pydantic import ValidationError
 
 from backend import main
 from backend import text_completion
@@ -72,6 +73,22 @@ class TextCompletionTests(unittest.TestCase):
             text_completion.text_complete(payload)
 
         self.model.generate.assert_not_called()
+
+    def test_accepts_2000_output_tokens_when_context_allows(self) -> None:
+        self.model.config.sequence_len = 2048
+        payload = text_completion.CompletionRequest(
+            text="O futebol", max_new_tokens=2000
+        )
+
+        text_completion.text_complete(payload)
+
+        self.assertEqual(self.model.generate.call_args.kwargs["max_new_tokens"], 2000)
+
+    def test_rejects_output_token_limit_above_2000(self) -> None:
+        with self.assertRaises(ValidationError):
+            text_completion.CompletionRequest(
+                text="O futebol", max_new_tokens=2001
+            )
 
     def test_api_reports_context_overflow_as_422(self) -> None:
         payload = text_completion.CompletionRequest(

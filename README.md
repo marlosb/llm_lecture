@@ -116,6 +116,8 @@ Portuguese prompts. The prompt (including the automatically added BOS token) and
 requested completion must fit within its 2,048-token context; larger requests
 return HTTP 422 without truncating the prompt. GPT-2 uses its own 1,024-token
 context limit.
+The completion API accepts `max_new_tokens` from 1 to 2,000 (default: 60),
+subject to the selected model's total context limit.
 
 ### Select the local model
 
