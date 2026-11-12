@@ -109,7 +109,14 @@ without changing the downloaded checkpoint. CPU execution remains FP32.
 FP16 reduces memory usage but does not guarantee faster inference on the GTX 1080.
 ArthurFriedenreich's custom Transformers code is loaded
 with `trust_remote_code=True`; the download is pinned to revision
-`fe31fcfc2f907e085461af443da858e9895db726` in `backend/model_config.py`.
+`af0f0c19f3ad871e3b1b4cbda874eff5a484e505` in `backend/model_config.py`.
+Text completion enables dynamic KV caching for both supported models, reusing
+previous tokens' keys and values within each generation request. Caches are not
+shared between requests. ArthurFriedenreich's cache adds up to approximately
+288 MiB per sequence in FP16 on GPU or 576 MiB in FP32 on CPU at its full context
+length, in addition to weights and other inference memory.
+For existing deployments, rerun `install.ps1` / `install.sh` and then
+`run.ps1` / `run.sh` to download the updated model code and recreate the app.
 ArthurFriedenreich is a Portuguese-only base completion model, not a chat model.
 The interface still supports all three languages, but this demo should use
 Portuguese prompts. The prompt (including the automatically added BOS token) and
@@ -280,6 +287,34 @@ authentication, rate limiting, or HTTPS.
 - `POST /api/text-complete` - text completion with the selected local model
 - `POST /api/chat-complete` - Azure chat completion (GPT-5-nano)
 - `POST /api/reasoning-chat-complete` - Azure reasoning chat completion (Phi-4-reasoning)
+
+## Text Completion Load Test
+
+With the updated app running, use Python 3.10+ on the host (no additional
+packages required):
+
+```powershell
+python test.py
+python test.py --base-url http://localhost:8000 --requests 10 --concurrency 2 --max-new-tokens 1500 --timeout 1200
+```
+
+The script sends one short warm-up request, excluded from measurements, then
+cycles through Portuguese prompts. Defaults are six requests, concurrency one,
+up to 1,000 new tokens per request, and a 600-second timeout per request.
+The server controls KV caching; this script does not enable it on an old
+deployment. Run the updated install and run scripts first.
+
+Output includes per-request latency, successful-request min/mean/p95/max
+latency, failures, and aggregate successful requests/second and completion
+characters/second over the measured wall time. The API does not return token
+usage, so these are not tokens/second; `max_new_tokens` is an upper bound.
+Any failed request produces a nonzero exit code.
+
+Start with concurrency one and increase cautiously: simultaneous generations
+consume additional CPU/GPU memory and affect other visitors. Run during a
+maintenance window. A client timeout does not guarantee server-side generation
+has stopped. GPT-2 users should lower `--max-new-tokens` (for example to 800) to
+leave room for the prompt within its 1,024-token context.
 
 ## Development Notes
 

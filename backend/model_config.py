@@ -5,7 +5,7 @@ from pathlib import Path
 SUPPORTED_MODELS: dict[str, tuple[str, str | None, str]] = {
     "marlosb/ArthurFriedenreich": (
         "ArthurFriedenreich",
-        "fe31fcfc2f907e085461af443da858e9895db726",
+        "af0f0c19f3ad871e3b1b4cbda874eff5a484e505",
         "sequence_len",
     ),
     "openai-community/gpt2": ("openai-community-gpt2", None, "n_positions"),

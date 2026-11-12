@@ -39,7 +39,7 @@ class TextCompletionTests(unittest.TestCase):
         self.runtime_patch.start()
         self.addCleanup(self.runtime_patch.stop)
 
-    def test_completes_at_context_limit_without_eos_or_kv_cache(self) -> None:
+    def test_completes_at_context_limit_with_kv_cache_without_eos(self) -> None:
         payload = text_completion.CompletionRequest(
             text="O futebol",
             max_new_tokens=2,
@@ -54,7 +54,7 @@ class TextCompletionTests(unittest.TestCase):
         self.assertEqual(decoded_ids.tolist(), [2, 3])
         generation_args = self.model.generate.call_args.kwargs
         self.assertEqual(generation_args["pad_token_id"], 65527)
-        self.assertFalse(generation_args["use_cache"])
+        self.assertTrue(generation_args["use_cache"])
         self.assertEqual(generation_args["max_new_tokens"], 2)
         self.assertTrue(
             torch.equal(

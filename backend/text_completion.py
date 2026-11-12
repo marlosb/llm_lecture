@@ -81,7 +81,7 @@ def text_complete(payload: CompletionRequest) -> CompletionResponse:
             top_p=0.95,
             temperature=0.9,
             pad_token_id=tokenizer.pad_token_id,
-            use_cache=MODEL_ID == "openai-community/gpt2",
+            use_cache=True,
         )
 
     completion_ids = generated[0][prompt_len:]
